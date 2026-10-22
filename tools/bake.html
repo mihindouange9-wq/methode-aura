@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Bake — greek-marble</title>
+<style>
+  body{margin:0;background:#0B0B0D;color:#F5F2EA;font:14px/1.5 system-ui,sans-serif;padding:24px}
+  canvas{display:block;width:960px;max-width:100%;border:1px solid #333;margin:16px 0}
+  .bar{height:6px;background:#222;border-radius:3px;overflow:hidden;max-width:960px}
+  .bar i{display:block;height:100%;width:0;background:#6C3BFF}
+  button{background:#6C3BFF;color:#fff;border:0;border-radius:999px;padding:10px 20px;font:inherit;cursor:pointer}
+  code{color:#D9A441}
+</style>
+</head>
+<body>
+<h2>Bake : greek-marble → ralenti fluide, 1080p, boucle intégrée</h2>
+<p id="status">Chargement…</p>
+<div class="bar"><i id="bar"></i></div>
+<p><button id="go">Générer</button> &nbsp; Paramètres : <code id="params"></code></p>
+<canvas id="out" width="1920" height="1080"></canvas>
+<script>
+/* ---------------------------------------------------------------------------
+   Sortie : vidéo WebM (VP9) 1920×1080 à 30 i/s.
+   - SLOW : facteur de ralenti (0.45 = 2,2× plus lent). Les images
+     intermédiaires sont calculées par fondu compensé en mouvement (le
+     déplacement vertical entre images est mesuré par corrélation de profils
+     de luminance), donc pas de saccade.
+   - XFADE : durée (s, temps source) du fondu de boucle intégré : la sortie
+     commence à t = XFADE et se termine en fondant vers le début, la boucle
+     native <video loop> est invisible.
+   - Netteté : bicubique (Catmull-Rom) + renforcement adaptatif bridé.
+   Paramètres URL : ?slow=0.45&xfade=1.4&bitrate=18&auto=1
+--------------------------------------------------------------------------- */
+var Q = new URLSearchParams(location.search); var bakedMs = 0;
+var SLOW = parseFloat(Q.get('slow')) || 0.45;
+var XFADE = parseFloat(Q.get('xfade')) || 1.4;
+var BITRATE = (parseFloat(Q.get('bitrate')) || 18) * 1e6;
+var SRC = Q.get('src') || '../assets/greek-marble.mp4';
+var OUT_FPS = 30, OW = 1920, OH = 1080, PROF = 96;
+var statusEl = document.getElementById('status'), bar = document.getElementById('bar');
+document.getElementById('params').textContent = 'slow=' + SLOW + ' xfade=' + XFADE + ' bitrate=' + (BITRATE / 1e6) + 'Mbps';
+function say(s, p) { statusEl.textContent = s; if (p != null) bar.style.width = (p * 100).toFixed(1) + '%'; document.title = s; }
+
+var canvas = document.getElementById('out');
+var gl = canvas.getContext('webgl', { alpha: false, antialias: false, preserveDrawingBuffer: true });
+if (!gl) { say('WebGL indisponible'); throw new Error('no webgl'); }
+
+/* ---- Shader : 2 paires d'images (fondu compensé) + fondu de boucle + bicubique + netteté ---- */
+var VS = 'attribute vec2 aPos; varying vec2 vUv; void main(){ vUv = aPos*0.5+0.5; gl_Position = vec4(aPos,0.,1.); }';
+var FS = [
+  'precision highp float; varying vec2 vUv;',
+  'uniform sampler2D uA, uB, uC, uD; uniform float uT1, uT2, uK; uniform float uShA, uShB, uShC, uShD;',
+  'uniform vec2 uSize, uTexel; uniform float uSharpen;',
+  'vec3 fetch(sampler2D s, vec2 uv){ return texture2D(s, uv).rgb; }',
+  'vec3 cubic(sampler2D s, vec2 uv){',
+  '  vec2 sp = uv * uSize; vec2 tp1 = floor(sp - 0.5) + 0.5; vec2 f = sp - tp1;',
+  '  vec2 w0 = f*(-0.5 + f*(1.0 - 0.5*f)); vec2 w1 = 1.0 + f*f*(-2.5 + 1.5*f);',
+  '  vec2 w2 = f*(0.5 + f*(2.0 - 1.5*f)); vec2 w3 = f*f*(-0.5 + 0.5*f);',
+  '  vec2 w12 = w1 + w2; vec2 o12 = w2 / w12;',
+  '  vec2 t0 = (tp1 - 1.0) / uSize, t3 = (tp1 + 2.0) / uSize, t12 = (tp1 + o12) / uSize;',
+  '  vec3 r = vec3(0.);',
+  '  r += fetch(s, vec2(t0.x, t0.y)) * w0.x * w0.y;  r += fetch(s, vec2(t12.x, t0.y)) * w12.x * w0.y;  r += fetch(s, vec2(t3.x, t0.y)) * w3.x * w0.y;',
+  '  r += fetch(s, vec2(t0.x, t12.y)) * w0.x * w12.y; r += fetch(s, vec2(t12.x, t12.y)) * w12.x * w12.y; r += fetch(s, vec2(t3.x, t12.y)) * w3.x * w12.y;',
+  '  r += fetch(s, vec2(t0.x, t3.y)) * w0.x * w3.y;  r += fetch(s, vec2(t12.x, t3.y)) * w12.x * w3.y;  r += fetch(s, vec2(t3.x, t3.y)) * w3.x * w3.y;',
+  '  return max(r, 0.0);',
+  '}',
+  'vec3 sampleFrame(sampler2D s, vec2 uv, float sh){',
+  '  vec2 p = clamp(uv + vec2(0., sh), 0.0, 1.0);',
+  '  vec3 c = cubic(s, p);',
+  '  vec3 n1 = fetch(s, p + vec2(uTexel.x, 0.)), n2 = fetch(s, p - vec2(uTexel.x, 0.)), n3 = fetch(s, p + vec2(0., uTexel.y)), n4 = fetch(s, p - vec2(0., uTexel.y));',
+  '  vec3 b = (n1 + n2 + n3 + n4) * 0.25; vec3 dtl = c - b;',
+  '  float lum = abs(dot(dtl, vec3(0.299, 0.587, 0.114))); float edge = smoothstep(0.006, 0.06, lum);',
+  '  vec3 sharp = c + dtl * uSharpen * (0.3 + 0.7 * edge);',
+  '  vec3 mn = min(min(n1, n2), min(n3, n4)), mx = max(max(n1, n2), max(n3, n4));',
+  '  return clamp(sharp, min(mn, c) - 0.015, max(mx, c) + 0.015);',
+  '}',
+  'void main(){',
+  '  vec2 uv = vec2(vUv.x, 1.0 - vUv.y);',
+  '  vec3 p1 = mix(sampleFrame(uA, uv, uShA), sampleFrame(uB, uv, uShB), uT1);',
+  '  vec3 col = p1;',
+  '  if (uK > 0.0005) { vec3 p2 = mix(sampleFrame(uC, uv, uShC), sampleFrame(uD, uv, uShD), uT2); col = mix(p1, p2, uK); }',
+  '  gl_FragColor = vec4(col, 1.0);',
+  '}'
+].join('\n');
+function sh(t, s) { var o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; }
+var prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+var quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+var aPos = gl.getAttribLocation(prog, 'aPos'); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+var U = {}; ['uA', 'uB', 'uC', 'uD', 'uT1', 'uT2', 'uK', 'uShA', 'uShB', 'uShC', 'uShD', 'uSize', 'uTexel', 'uSharpen'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+var texs = [0, 1, 2, 3].map(function (i) {
+  var t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + i); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+});
+gl.uniform1i(U.uA, 0); gl.uniform1i(U.uB, 1); gl.uniform1i(U.uC, 2); gl.uniform1i(U.uD, 3);
+gl.viewport(0, 0, OW, OH);
+
+/* ---- Extraction de toutes les images source ---- */
+var video = document.createElement('video'); video.muted = true; video.playsInline = true; video.preload = 'auto';
+var FW = 0, FH = 0, D = 0, SFPS = 30, N = 0, frames = [], profiles = [], shifts = [];
+function profileOf(src) {
+  var small = document.createElement('canvas'); small.width = 32; small.height = PROF;
+  var sc = small.getContext('2d'); sc.drawImage(src, 0, 0, 32, PROF);
+  var d = sc.getImageData(0, 0, 32, PROF).data, out = new Float32Array(PROF);
+  for (var y = 0; y < PROF; y++) { var s = 0; for (var x = 0; x < 32; x++) { var k = (y * 32 + x) * 4; s += d[k] * 0.299 + d[k + 1] * 0.587 + d[k + 2] * 0.114; } out[y] = s / 32; }
+  return out;
+}
+function matchShift(p0, p1) {
+  var R = Math.round(PROF * 0.18), best = 0, bestErr = 1e18, errs = {};
+  for (var s = -R; s <= R; s++) {
+    var e = 0, n = 0;
+    for (var y = 0; y < PROF; y++) { var y1 = y + s; if (y1 < 0 || y1 >= PROF) continue; var d = p0[y] - p1[y1]; e += d * d; n++; }
+    e = n ? e / n : 1e18; errs[s] = e; if (e < bestErr) { bestErr = e; best = s; }
+  }
+  var em = errs[best - 1], ep = errs[best + 1];
+  if (em != null && ep != null) { var den = em - 2 * bestErr + ep; if (den > 1e-6) best += 0.5 * (em - ep) / den; }
+  return best;
+}
+function loadVideo() {
+  return fetch(SRC).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); }).then(function (b) {
+    return new Promise(function (res, rej) {
+      video.addEventListener('loadedmetadata', function () { res(); }, { once: true });
+      video.addEventListener('error', function () { rej(new Error('video error')); }, { once: true });
+      video.src = URL.createObjectURL(b);
+    });
+  });
+}
+function extractAll() {
+  FW = video.videoWidth; FH = video.videoHeight; D = video.duration;
+  N = Math.floor((D - 0.12) * SFPS);
+  var off = document.createElement('canvas'); off.width = FW; off.height = FH; var octx = off.getContext('2d');
+  var i = 0;
+  return new Promise(function (res, rej) {
+    function next() {
+      if (i >= N) { for (var k = 0; k < N - 1; k++) shifts[k] = -matchShift(profiles[k], profiles[k + 1]) * (FH / PROF); res(); return; }
+      var timer = setTimeout(function () { rej(new Error('seek bloqué à ' + i)); }, 4000);
+      video.addEventListener('seeked', function onS() {
+        clearTimeout(timer); video.removeEventListener('seeked', onS);
+        octx.drawImage(video, 0, 0, FW, FH);
+        profiles[i] = profileOf(off);
+        off.toBlob(function (blob) { frames[i] = blob; say('Extraction ' + (i + 1) + '/' + N, (i + 1) / N * 0.4); i++; next(); }, 'image/webp', 0.98);
+      });
+      video.currentTime = i / SFPS + 0.0005;
+    }
+    next();
+  });
+}
+
+/* ---- Cache d'images décodées ---- */
+var bitmaps = {}, order = [], pending = {};
+function want(i) {
+  if (i < 0 || i >= N || bitmaps[i] || pending[i]) return null;
+  pending[i] = createImageBitmap(frames[i]).then(function (bm) { bitmaps[i] = bm; delete pending[i]; order.push(i); while (order.length > 48) { var o = order.shift(); if (bitmaps[o]) { bitmaps[o].close(); delete bitmaps[o]; } } return bm; });
+  return pending[i];
+}
+function get(i) {
+  var p = bitmaps[i] ? Promise.resolve(bitmaps[i]) : (pending[i] || want(i));
+  if (!p) return Promise.reject(new Error('image ' + i + ' indisponible (N=' + N + ')'));
+  return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error("décodage bloqué sur l'image " + i)); }, 10000); })]);
+}
+function shiftBetween(a, b) { var s = 0; for (var i = a; i < b; i++) s += shifts[i] || 0; return s; }
+function upload(unit, bm) { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texs[unit]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bm); }
+
+/* ---- Rendu d'une image de sortie au temps source t (s) ---- */
+function pairAt(t) {
+  var f = Math.max(0, Math.min(N - 1.001, t * SFPS)), i0 = Math.floor(f), i1 = Math.min(N - 1, i0 + 1), tt = f - i0;
+  var s = shiftBetween(i0, i1);
+  return { i0: i0, i1: i1, t: tt, shA: s * tt / FH, shB: -s * (1 - tt) / FH };
+}
+function renderAt(t, k, t2) {
+  var p1 = pairAt(t), p2 = k > 0 ? pairAt(t2) : null;
+  var need = [get(p1.i0), get(p1.i1)]; if (p2) { need.push(get(p2.i0)); need.push(get(p2.i1)); }
+  for (var a = 1; a <= 6; a++) { want(p1.i1 + a); if (p2) want(p2.i1 + a); }
+  return Promise.all(need).then(function (bms) {
+    upload(0, bms[0]); upload(1, bms[1]);
+    gl.uniform1f(U.uT1, p1.t); gl.uniform1f(U.uShA, p1.shA); gl.uniform1f(U.uShB, p1.shB);
+    if (p2) { upload(2, bms[2]); upload(3, bms[3]); gl.uniform1f(U.uT2, p2.t); gl.uniform1f(U.uShC, p2.shA); gl.uniform1f(U.uShD, p2.shB); }
+    gl.uniform1f(U.uK, k);
+    gl.uniform2f(U.uSize, FW, FH); gl.uniform2f(U.uTexel, 1 / FW, 1 / FH); gl.uniform1f(U.uSharpen, 0.7);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  });
+}
+
+/* ---- Enregistrement ---- */
+function bake() {
+  var Dsrc = (N - 1) / SFPS;                     // durée source utilisable
+  var start = XFADE, end = Dsrc;                  // segment de sortie (temps source)
+  var outDur = (end - start) / SLOW;              // durée de sortie (s)
+  var totalFrames = Math.round(outDur * OUT_FPS); bakedMs = totalFrames / OUT_FPS * 1000;
+  var stream = canvas.captureStream(0);
+  var track = stream.getVideoTracks()[0];
+  var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].filter(function (m) { return MediaRecorder.isTypeSupported(m); })[0];
+  var rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: BITRATE });
+  var chunks = [];
+  rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+  var done = new Promise(function (res) { rec.onstop = function () { res(new Blob(chunks, { type: 'video/webm' })); }; });
+  rec.start(500);
+  var n = 0, t0 = performance.now();
+  function frame() {
+    if (n >= totalFrames) { rec.stop(); return; }
+    // Cadence réelle : une image toutes les 1/OUT_FPS s de temps réel (l'enregistreur est temps réel)
+    var due = t0 + n * 1000 / OUT_FPS;
+    if (performance.now() < due) { setTimeout(frame, 4); return; }
+    var ts = start + (n / OUT_FPS) * SLOW;         // temps source
+    var k = 0, t2 = 0;
+    if (ts > end - XFADE) { k = (ts - (end - XFADE)) / XFADE; k = k * k * (3 - 2 * k); t2 = ts - (end - XFADE); }
+    renderAt(ts, k, t2).then(function () {
+      if (track.requestFrame) track.requestFrame();
+      n++; say('Rendu ' + n + '/' + totalFrames + ' (' + mime + ')', 0.4 + 0.6 * n / totalFrames);
+      setTimeout(frame, 4);
+    });
+  }
+  return renderAt(start, 0, 0).then(function () { setTimeout(frame, 4); return done; });
+}
+
+/* ---- Durée dans l'en-tête : MediaRecorder n'écrit pas Segment > Info > Duration. On l'insère,
+   et on neutralise un éventuel SeekHead (ses positions seraient fausses après l'insertion). ---- */
+function fixDuration(blob, durationMs) {
+  return blob.arrayBuffer().then(function (buf) {
+    var u8 = new Uint8Array(buf), pos = 0;
+    function vint(p) {
+      var b = u8[p], len = 1, mask = 0x80; while (len <= 8 && !(b & mask)) { mask >>= 1; len++; }
+      var v = b & (mask - 1); for (var i = 1; i < len; i++) v = v * 256 + u8[p + i];
+      var unknown = (b & (mask - 1)) === (mask - 1); for (var j = 1; j < len && unknown; j++) if (u8[p + j] !== 0xFF) unknown = false;
+      return { len: len, value: v, unknown: unknown };
+    }
+    function id(p) { var b = u8[p], len = 1, mask = 0x80; while (len <= 4 && !(b & mask)) { mask >>= 1; len++; } var v = 0; for (var i = 0; i < len; i++) v = v * 256 + u8[p + i]; return { len: len, value: v }; }
+    var h = id(pos); if (h.value !== 0x1A45DFA3) throw new Error('pas un fichier EBML');
+    var hs = vint(pos + h.len); pos += h.len + hs.len + hs.value;
+    var sg = id(pos); if (sg.value !== 0x18538067) throw new Error('Segment introuvable');
+    var ss = vint(pos + sg.len); pos = pos + sg.len + ss.len;
+    var infoStart = -1, infoSize = null, infoHdr = 0, seekHeads = [];
+    while (pos < u8.length) {
+      var e = id(pos), s = vint(pos + e.len), dataStart = pos + e.len + s.len;
+      if (e.value === 0x114D9B74) seekHeads.push({ p: pos, total: e.len + s.len + s.value });
+      if (e.value === 0x1549A966) { infoStart = pos; infoSize = s; infoHdr = e.len + s.len; break; }
+      if (e.value === 0x1F43B675) break;
+      if (s.unknown) throw new Error('taille inconnue avant Info');
+      pos = dataStart + s.value;
+    }
+    if (infoStart < 0) throw new Error('Info introuvable');
+    var ip = infoStart + infoHdr, iend = ip + infoSize.value, hasDur = false;
+    while (ip < iend) { var ce = id(ip), cs = vint(ip + ce.len); if (ce.value === 0x4489) { hasDur = true; break; } ip = ip + ce.len + cs.len + cs.value; }
+    var out;
+    if (hasDur) out = new Uint8Array(u8);
+    else {
+      var dur = new Uint8Array(11); dur[0] = 0x44; dur[1] = 0x89; dur[2] = 0x88;
+      new DataView(dur.buffer).setFloat64(3, durationMs, false);
+      var newSize = infoSize.value + dur.length;
+      var sizeBytes = new Uint8Array(8); sizeBytes[0] = 0x01; for (var k = 7; k >= 1; k--) { sizeBytes[k] = newSize & 0xFF; newSize = Math.floor(newSize / 256); }
+      var before = u8.subarray(0, infoStart), idb = u8.subarray(infoStart, infoStart + 4);
+      var payload = u8.subarray(infoStart + infoHdr, iend), after = u8.subarray(iend);
+      out = new Uint8Array(before.length + 4 + 8 + payload.length + dur.length + after.length);
+      var o = 0; out.set(before, o); o += before.length; out.set(idb, o); o += 4; out.set(sizeBytes, o); o += 8;
+      out.set(payload, o); o += payload.length; out.set(dur, o); o += dur.length; out.set(after, o);
+    }
+    // SeekHead → Void de même taille totale (ID 1 octet + taille sur 8 octets + données)
+    for (var q = 0; q < seekHeads.length; q++) {
+      var p2 = seekHeads[q].p, total = seekHeads[q].total, dlen = total - 9;
+      if (dlen < 0) continue;
+      out[p2] = 0xEC; out[p2 + 1] = 0x01; var d = dlen; for (var k2 = p2 + 8; k2 >= p2 + 2; k2--) { out[k2] = d & 0xFF; d = Math.floor(d / 256); }
+    }
+    return new Blob([out], { type: 'video/webm' });
+  });
+}
+
+function run() {
+  document.getElementById('go').disabled = true;
+  say('Chargement de la vidéo…', 0);
+  loadVideo().then(extractAll).then(function () {
+    say('Préchauffage…', 0.4);
+    return Promise.all([get(0), get(1), get(2), get(3)]);
+  }).then(bake).then(function (blob) { return fixDuration(blob, bakedMs).catch(function (e) { say('Durée non écrite : ' + e.message); return blob; }); }).then(function (blob) {
+    var name = 'greek-marble-1080.webm';
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    say('Terminé : ' + name + ' (' + (blob.size / 1e6).toFixed(1) + ' Mo) — téléchargé. Copiez-le dans assets/.', 1);
+  }).catch(function (e) { say('Erreur : ' + e.message); console.error(e); });
+}
+window.addEventListener('unhandledrejection', function (e) { say('Erreur (promesse) : ' + (e.reason && e.reason.message || e.reason)); });
+window.addEventListener('error', function (e) { say('Erreur JS : ' + e.message + ' @' + e.lineno); });
+document.getElementById('go').addEventListener('click', run);
+if (Q.get('auto')) run();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Fichiers temporaires
+Thumbs.db
+.DS_Store
+*.log
+.review/
+
+# Copie de build locale
+dist/

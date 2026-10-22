@@ -1,0 +1,38 @@
+/* ==========================================================================
+   Impression / PDF — une page par section, fond obsidienne conservé, pas
+   d'éléments fixes (vidéo, trame, navigation, préchargeur).
+   ========================================================================== */
+@page{size:381mm 238mm;margin:0;}
+html,body{background:var(--obs) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.marble,.liquid-canvas,.loader,.mobile-menu,.case,.skip-link{display:none !important;}
+.nav{position:absolute !important;transform:none !important;opacity:1 !important;}
+main{z-index:auto;}
+.hero{min-height:100vh;page-break-after:always;break-after:page;background:var(--obs) url('../assets/fresque-poster.jpg') 50% 45% / cover no-repeat;}
+.hero .line > i,.hero .ht-line > i{transform:none !important;opacity:1 !important;}
+.hero-title{transform:none !important;opacity:1 !important;filter:none !important;}
+.hero-star,.hero-foot{opacity:1 !important;transform:none !important;}
+.s{page-break-before:always;break-before:page;min-height:0;padding-top:40px !important;padding-bottom:40px !important;}
+.hero::before,.hero::after{display:none !important;}
+.hero-foot{display:none !important;}
+.w > i,.line > i,[data-anim]{transform:none !important;opacity:1 !important;clip-path:none !important;}
+.services-stage{position:static !important;height:auto !important;display:block !important;padding:0 var(--frame-x) !important;}
+.services-head{position:static !important;margin-bottom:24px;}
+.services-num,.services-ring,.services-bg,.services-progress{display:none !important;}
+.services-list{gap:0 !important;}
+.svc-title > i{color:var(--ivo) !important;transform:none !important;font-size:40px !important;}
+.svc-panel{position:static !important;opacity:1 !important;transform:none !important;margin-bottom:24px;}
+.methode-pin{height:auto !important;padding:0 !important;gap:28px !important;}
+.methode-track{transform:none !important;display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:16px !important;}
+.methode-progress{display:none !important;}
+.step{width:auto !important;min-height:0 !important;opacity:1 !important;padding:22px !important;}
+.step-num{font-size:110px !important;}
+.s-contact{min-height:0 !important;}
+.cta-ring{display:none !important;}
+.footer{min-height:0 !important;}
+.work-link{min-height:0 !important;}
+.work-media{max-height:420px !important;}
+.manifesto-sheet{clip-path:none !important;}
+.m-line > i{transform:none !important;}
+.footer{page-break-before:always;break-before:page;position:static !important;background:var(--obs) !important;}
+.fw-line > i{transform:none !important;opacity:1 !important;}
+a[href]::after{content:none !important;}

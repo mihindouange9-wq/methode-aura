@@ -1,0 +1,107 @@
+/* ==========================================================================
+   Base — reset, typographie de base, marbre, trame, feuilles, réduction.
+   ========================================================================== */
+*,*::before,*::after{box-sizing:border-box;}
+html{
+  background:var(--obs);
+  color:var(--ivo);
+  -webkit-text-size-adjust:100%;
+  scroll-padding-top:0;
+}
+html.lenis,html.lenis body{height:auto;}
+.lenis.lenis-smooth{scroll-behavior:auto !important;}
+.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain;}
+.lenis.lenis-stopped{overflow:hidden;}
+body{
+  margin:0;
+  font-family:var(--font);
+  font-size:var(--fs-body);
+  line-height:var(--lh-body);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+  background:transparent; /* le marbre se voit à travers le hero et le pied de page */
+}
+html.is-loading body,html.menu-open body,html.case-open body,html.is-locked body{overflow:hidden;}
+
+img,svg{display:block;max-width:100%;}
+a{color:inherit;text-decoration:none;}
+ul,ol{list-style:none;margin:0;padding:0;}
+h1,h2,h3,h4,p,blockquote,figure,dl,dd{margin:0;}
+button{font:inherit;color:inherit;}
+i{font-style:normal;}
+::selection{background:var(--vio);color:#fff;}
+
+.container{max-width:var(--container);margin:0 auto;padding:0 var(--gutter);position:relative;}
+
+/* Accessibilité : focus visibles, lien d'évitement */
+a:focus-visible,button:focus-visible{outline:2px solid var(--vio);outline-offset:4px;border-radius:6px;}
+.s-light a:focus-visible,.s-light button:focus-visible{outline-color:var(--vio-deep);}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:calc(var(--z-cursor) + 1);background:var(--vio);color:#fff;padding:12px 20px;border-radius:0 0 8px 0;font-weight:600;}
+.skip-link:focus{left:0;}
+
+/* Fenêtres de découpe typographique : chaque mot / ligne monte dans sa propre fenêtre */
+.w{display:inline-block;overflow:hidden;vertical-align:bottom;padding:0.06em 0.02em 0.14em;margin:-0.06em -0.02em -0.14em;}
+.w > i{display:inline-block;will-change:transform;}
+.line{display:block;overflow:hidden;padding:0.04em 0 0.14em;margin:-0.04em 0 -0.14em;}
+.line > i{display:block;will-change:transform;}
+html:not(.js) .w > i,html:not(.js) .line > i{transform:none !important;opacity:1 !important;}
+
+/* ---------- Le marbre : vidéo fixe, matière du hero et du pied de page ---------- */
+.marble{
+  position:fixed;inset:0;z-index:var(--z-canvas);pointer-events:none;overflow:hidden;background:var(--obs);
+  opacity:0;transition:opacity 1.6s var(--ease-out);
+}
+.marble.is-ready{opacity:1;}
+.marble-video{
+  position:absolute;inset:-4%;width:108%;height:108%;
+  object-fit:cover;object-position:50% 45%;
+  transform:translate3d(var(--vx,0px),var(--vy,0px),0) scale(var(--vs,1));
+  will-change:transform;
+  filter:saturate(1.08) contrast(1.04);
+  opacity:0;transition:none;
+}
+/* Voile : vignettage, lueur violette au sol ; --dim (0 → 1) éteint la matière hors du hero */
+.marble-shade{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(rgba(var(--obs-rgb),0.34), rgba(var(--obs-rgb),0.34)),
+    radial-gradient(120% 90% at 50% 50%, transparent 35%, rgba(var(--obs-rgb),0.6) 100%),
+    linear-gradient(180deg, rgba(var(--obs-rgb),0.4) 0%, transparent 25%, transparent 70%, rgba(var(--obs-rgb),0.55) 100%),
+    radial-gradient(50% 30% at 50% 100%, rgba(var(--vio-rgb),0.18) 0%, transparent 70%);
+}
+.marble-shade::after{
+  content:"";position:absolute;inset:0;background:var(--obs);
+  opacity:calc(var(--dim,0) * 0.94);
+}
+html.no-video .marble-video{display:none;}
+html.no-video .marble-shade{
+  background:
+    radial-gradient(60% 55% at 50% 42%, rgba(var(--vio-rgb),0.28) 0%, rgba(var(--vio-rgb),0.08) 45%, transparent 75%),
+    radial-gradient(35% 30% at 40% 38%, rgba(var(--or-rgb),0.08) 0%, transparent 70%);
+}
+@media (max-width:900px){ .marble-video{object-position:55% 50%;} }
+/* Écrans tactiles : pas de filtre sur la vidéo (coût GPU), le voile suffit */
+@media (pointer:coarse){ .marble-video{filter:none;} }
+
+/* ---------- Toile liquide (WebGL) : recouvre la vidéo, apparaît une fois la première image prête ---------- */
+.liquid-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1.2s var(--ease-out);pointer-events:none;}
+.liquid-canvas.is-ready{opacity:1;}
+/* La vidéo reste visible tant que la toile n'a pas dessiné sa première image */
+.marble.has-liquid.liquid-ready .marble-video{opacity:0 !important;}
+
+/* ---------- Sections ---------- */
+main{position:relative;z-index:var(--z-content);}
+.s{position:relative;background:var(--obs);color:var(--ivo);}
+.s-light{background:transparent;color:var(--obs);}
+
+/* ---------- Réduction des animations : tout est visible, rien ne bouge ---------- */
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after{
+  animation-duration:0.001ms !important;
+  animation-iteration-count:1 !important;
+  transition-duration:0.001ms !important;
+  scroll-behavior:auto !important;
+}
