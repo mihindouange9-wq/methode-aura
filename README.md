@@ -211,4 +211,3 @@ chrome --headless=new --disable-gpu --allow-file-access-from-files --window-size
 - Adresse provisoire : https://methode-aura.onrender.com (canonical et Open
   Graph dans `index.html`). Au rattachement du domaine définitif, remplacer
   cette adresse dans `index.html` et ajouter le domaine au service Render.
-- L'ancienne copie Netlify (`../methode-aura-netlify/`) n'est plus utilisée.
