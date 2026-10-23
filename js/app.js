@@ -46,6 +46,9 @@
     if (a.hasAttribute('data-no-scroll')) return;
     e.preventDefault();
     A.scrollTo(el, { offset: 0 });
+    // Le focus suit : le lien d'évitement et les ancres amènent vraiment le lecteur à la section
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+    try { el.focus({ preventScroll: true }); } catch (err) { el.focus(); }
   });
 
   /* ---- Découpe typographique : mots ou lignes dans des fenêtres masquées ---- */
@@ -130,20 +133,26 @@
     var video = marble.querySelector('.marble-video');
     marble.style.setProperty('--dim', '0');
     // Une seule source de vérité : le voile dépend de la position dans le hero (0 → 1) et de l'arrivée du pied de page (1 → 0.15)
-    var last = -1;
+    var last = -1, heroH = 0, footerTop = 0;
+    // Les positions sont mesurées au rafraîchissement, jamais pendant le défilement (pas de reflow forcé)
+    function measure() {
+      var y = window.scrollY || 0;
+      heroH = hero.offsetHeight || window.innerHeight;
+      footerTop = footer ? footer.getBoundingClientRect().top + y : 0;
+    }
     function update() {
       var y = window.scrollY || 0, vh = window.innerHeight;
-      var heroH = hero.offsetHeight || vh;
-      var p1 = Math.max(0, Math.min(1, y / (heroH * 0.6)));
+      var p1 = Math.max(0, Math.min(1, y / ((heroH || vh) * 0.6)));
       var dim = p1;
       if (footer) {
-        var ft = footer.getBoundingClientRect().top + y;
-        var p2 = Math.max(0, Math.min(1, (y + vh - ft) / (vh * 0.7)));
+        var p2 = Math.max(0, Math.min(1, (y + vh - footerTop) / (vh * 0.7)));
         dim = p1 * (1 - 0.85 * p2);
       }
       if (Math.abs(dim - last) > 0.002) { last = dim; marble.style.setProperty('--dim', dim.toFixed(3)); }
     }
-    ST.create({ start: 0, end: 'max', onUpdate: update, onRefresh: update });
+    measure();
+    A.on('measure', function () { measure(); update(); });
+    ST.create({ start: 0, end: 'max', onUpdate: update, onRefresh: function () { measure(); update(); } });
     update();
     if (video && !A.reduced) {
       gsap.fromTo(video, { '--vs': 1 }, { '--vs': 1.08, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.6 } });

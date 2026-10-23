@@ -154,15 +154,9 @@
         A.tilt.active = true;
       }, { passive: true });
     };
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      var ask = function () {
-        DeviceOrientationEvent.requestPermission().then(function (s) { if (s === 'granted') attach(); }).catch(function () {});
-        window.removeEventListener('touchend', ask);
-      };
-      window.addEventListener('touchend', ask, { passive: true });
-    } else {
-      attach();
-    }
+    // iOS exige une demande de permission (fenêtre système au premier toucher) : trop intrusif pour
+    // un simple parallaxe, on s'en passe. Les autres navigateurs livrent l'inclinaison sans rien demander.
+    if (typeof DeviceOrientationEvent.requestPermission !== 'function') attach();
   }
 
   /* ---- Boucle ---- */

@@ -40,6 +40,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--vio);outline-offset
 .s-light a:focus-visible,.s-light button:focus-visible{outline-color:var(--vio-deep);}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:calc(var(--z-cursor) + 1);background:var(--vio);color:#fff;padding:12px 20px;border-radius:0 0 8px 0;font-weight:600;}
 .skip-link:focus{left:0;}
+/* Les ancres déplacent le focus sur leur section (lecteurs d'écran, clavier) sans dessiner de cadre */
+#main:focus,.s:focus,.hero:focus{outline:none;}
 
 /* Fenêtres de découpe typographique : chaque mot / ligne monte dans sa propre fenêtre */
 .w{display:inline-block;overflow:hidden;vertical-align:bottom;padding:0.06em 0.02em 0.14em;margin:-0.06em -0.02em -0.14em;}
@@ -47,6 +49,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--vio);outline-offset
 .line{display:block;overflow:hidden;padding:0.04em 0 0.14em;margin:-0.04em 0 -0.14em;}
 .line > i{display:block;will-change:transform;}
 html:not(.js) .w > i,html:not(.js) .line > i{transform:none !important;opacity:1 !important;}
+/* Sans JavaScript : la navigation est visible, la fresque montre son affiche */
+html:not(.js) .nav,html:not(.js) .marble,html:not(.js) .marble-video{opacity:1;}
 
 /* ---------- Le marbre : vidéo fixe, matière du hero et du pied de page ---------- */
 .marble{

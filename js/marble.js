@@ -50,6 +50,7 @@
   function start() {
     if (started) return;
     started = true;
+    html.classList.remove('no-video'); // la vidéo est arrivée (même après le délai de repli)
     duration = va.duration || 0;
     baked = /\.webm(\?|$)/i.test(va.currentSrc || '');
     if (baked) { va.loop = true; va.playbackRate = 1; va.defaultPlaybackRate = 1; }

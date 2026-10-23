@@ -48,9 +48,9 @@ révélations au défilement se limitent à une montée légère en fondu.
    navigation du site (`assets/univers/imora-rituals/navigation-desktop.webm`,
    22 s, 1600 × 1000) et ouvre l'étude de cas plein écran depuis le visuel
    (clip-path). LINKO, LOCAGAB et PAVEN suivent avec la capture de leur page
-   d'accueil (`assets/univers/<projet>/desktop-accueil.jpg`, 1600 × 1000) ; les
-   deux premiers ouvrent le site en ligne dans un nouvel onglet, PAVEN attend
-   sa mise en ligne. Puis les six univers.
+   d'accueil (`assets/univers/<projet>/desktop-accueil.jpg`, 1600 × 1000, et
+   une variante 800 px pour les petits écrans) ; les trois ouvrent le site en
+   ligne dans un nouvel onglet. Puis les six univers.
 8. **Manifeste** — feuille Ivoire qui se déploie, lignes révélées au
    défilement, mot clé en violet sur la ligne courante.
 9. **Contact** — deux lignes géantes, bouton, courriel, anneau incliné vers le
@@ -127,8 +127,9 @@ assets/
   la scène `.case-stage` de `#caseStudy` ; `works.js` ouvre l'étude de cas
   depuis la carte cliquée et lance la vidéo.
 - LINKO (https://linko-s3ve.onrender.com), LOCAGAB (https://locagab.onrender.com)
-  et PAVEN (pas encore en ligne) sont présentés par la capture de leur page
-  d'accueil à 1600 × 1000 (Chrome headless, 5 s d'attente après le chargement).
+  et PAVEN (https://paven.onrender.com) sont présentés par la capture de leur page
+  d'accueil à 1600 × 1000 (Chrome headless, 5 s d'attente après le chargement),
+  réduite à 800 px pour les petits écrans (`desktop-accueil-800.jpg`).
   Pour ajouter un site : dupliquer un `<article class="work work--site">`.
 
 ## Vidéo de fond
