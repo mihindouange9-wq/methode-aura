@@ -127,7 +127,7 @@ assets/
   la scène `.case-stage` de `#caseStudy` ; `works.js` ouvre l'étude de cas
   depuis la carte cliquée et lance la vidéo.
 - LINKO (https://linko-s3ve.onrender.com), LOCAGAB (https://locagab.onrender.com)
-  et PAVEN (https://paven.onrender.com) sont présentés par la capture de leur page
+  et PAVEN (https://paven.onrender.com) sont présentés par la capture de leur page ; P’NUTS (https://pnuts.onrender.com, ajouté le 24 octobre 2026) suit le même modèle
   d'accueil à 1600 × 1000 (Chrome headless, 5 s d'attente après le chargement),
   réduite à 800 px pour les petits écrans (`desktop-accueil-800.jpg`).
   Pour ajouter un site : dupliquer un `<article class="work work--site">`.
