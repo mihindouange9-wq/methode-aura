@@ -160,7 +160,7 @@ a.work-link:hover .work-cta{color:var(--obs);}
    se brisent en éclats (clip-path) qui se recomposent en l'univers suivant au rythme du défilement. */
 .s-univers{padding:var(--s-pad) 0;}
 .univers-head{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px, 4vw, 80px);align-items:end;margin-bottom:clamp(28px, 4vw, 56px);}
-.univers-field,.univers-counter{display:none;}
+.univers-field{display:none;}
 .univers-list{border-top:1px solid var(--line-dark-2);}
 .uni{
   display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:baseline;gap:clamp(16px, 2vw, 32px);
@@ -187,13 +187,6 @@ a.work-link:hover .work-cta{color:var(--obs);}
 .uv-in{display:flex;flex-direction:column;gap:clamp(14px, 2vh, 26px);}
 .uv-name{display:block;font-size:clamp(40px, 7.6vw, 124px);font-weight:800;line-height:0.94;letter-spacing:-0.045em;color:var(--ivo);text-wrap:balance;}
 .uv-tag{display:block;font-size:clamp(16px, 1.6vw, 24px);font-weight:300;line-height:1.4;color:var(--muted-dark);max-width:34ch;}
-.s-univers.is-stage .univers-counter{
-  display:flex;align-items:center;gap:14px;position:absolute;left:var(--gutter);bottom:28px;margin:0;
-  font-size:12px;font-weight:500;letter-spacing:0.08em;color:var(--muted-dark-2);
-}
-.uc-num{color:var(--ivo);min-width:2ch;}
-.uc-line{position:relative;display:block;width:120px;height:1px;background:var(--line-dark-2);}
-.uc-line::after{content:"";position:absolute;inset:0;background:var(--ivo);transform-origin:left center;transform:scaleX(var(--p,0));}
 
 /* ---------- MANIFESTE (feuille Ivoire) ---------- */
 .s-manifesto{padding:0;background:var(--obs);}

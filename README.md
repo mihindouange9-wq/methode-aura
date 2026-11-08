@@ -63,7 +63,7 @@ révélations au défilement se limitent à une montée légère en fondu.
    Puis **les six univers** (`js/univers.js`) : scène épinglée, le nom et sa phrase se brisent en
    éclats triangulaires (clip-path sur une grille de points déplacés, 36 sur ordinateur, 32 sur
    téléphone) qui s'envolent depuis le centre pendant que les éclats du suivant convergent et se
-   recomposent ; piloté par le défilement, donc réversible ; compteur 01 — 06. Au repos, une seule
+   recomposent ; piloté par le défilement, donc réversible. Au repos, une seule
    copie non découpée est affichée (pas de coutures). Mouvement réduit : la liste d'origine.
 8. **Manifeste** — feuille Ivoire qui se déploie, lignes révélées au
    défilement, mot clé en violet sur la ligne courante.

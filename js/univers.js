@@ -15,8 +15,6 @@
   var stage = document.getElementById('universStage');
   var field = document.getElementById('universField');
   var list = section ? section.querySelector('.univers-list') : null;
-  var counterNum = document.getElementById('universNum');
-  var counterLine = section ? section.querySelector('.uc-line') : null;
   if (!section || !stage || !field || !list) return;
 
   var items = Array.prototype.slice.call(list.querySelectorAll('.uni')).map(function (li) {
@@ -26,7 +24,6 @@
   if (N < 2) return;
   var STEP = 0.8, HOLD = 0.35;
   function smooth(t) { t = A.clamp(t, 0, 1); return t * t * (3 - 2 * t); }
-  function pad(n) { return (n < 10 ? '0' : '') + n; }
 
   /* ---- Découpe : une grille de points légèrement déplacés, deux triangles par case ---- */
   function rnd(seed) { var x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); }
@@ -131,7 +128,6 @@
     place(slots[1], t, false);
   }
 
-  var cur = -1;
   function setProgress(P) {
     var L = (N - 1) * STEP + HOLD;
     var f = A.clamp(P * L / STEP, 0, N - 1);
@@ -139,9 +135,6 @@
     var local = f - i;
     var t = f >= N - 1 ? 1 : smooth((local - 0.1) / 0.8);
     render(i, t);
-    var next = f >= N - 1 ? N - 1 : (local < 0.5 ? i : i + 1);
-    if (next !== cur) { cur = next; if (counterNum) counterNum.textContent = pad(cur + 1); }
-    if (counterLine) counterLine.style.setProperty('--p', (f / (N - 1)).toFixed(4));
   }
 
   /* ---- Armement ---- */
