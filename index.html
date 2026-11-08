@@ -42,6 +42,7 @@
 <script defer src="js/services.js"></script>
 <script defer src="js/methode.js"></script>
 <script defer src="js/works.js"></script>
+<script defer src="js/univers.js"></script>
 <script defer src="js/manifesto.js"></script>
 <script defer src="js/contact.js"></script>
 <script defer src="js/boot.js"></script>
@@ -434,12 +435,16 @@
   </section>
 
   <!-- ================= UNIVERS ================= -->
+  <!-- Scène épinglée (js/univers.js) : chaque univers se brise en éclats qui se recomposent en le suivant,
+       au rythme du défilement. La liste ci-dessous reste la source (lecteurs d'écran, mouvement réduit, sans scripts). -->
   <section class="s s-univers" id="univers">
-    <div class="container">
+    <div class="univers-stage" id="universStage">
+    <div class="container univers-inner">
       <div class="univers-head">
         <h2 class="s-title" data-anim="words">À l'aise dans chaque univers.</h2>
         <p class="s-lead" data-anim="up">La méthode s'adapte à chaque secteur, avec la même exigence de cohérence.</p>
       </div>
+      <div class="univers-field" id="universField" aria-hidden="true"></div>
       <ul class="univers-list">
         <li class="uni" data-anim="up"><span class="uni-name">Hôtellerie et lifestyle</span><span class="uni-tag">L'hospitalité comme signature.</span></li>
         <li class="uni" data-anim="up"><span class="uni-name">Tech et SaaS</span><span class="uni-tag">La clarté est un avantage concurrentiel.</span></li>
@@ -448,6 +453,8 @@
         <li class="uni" data-anim="up"><span class="uni-name">Mode et retail</span><span class="uni-tag">Une marque que l'on porte.</span></li>
         <li class="uni" data-anim="up"><span class="uni-name">Finance et conseil</span><span class="uni-tag">La confiance se construit au premier regard.</span></li>
       </ul>
+      <p class="univers-counter" aria-hidden="true"><span class="uc-num" id="universNum">01</span><i class="uc-line"></i><span class="uc-total">06</span></p>
+    </div>
     </div>
   </section>
 

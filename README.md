@@ -59,7 +59,12 @@ révélations au défilement se limitent à une montée légère en fondu.
    Imora Rituals joue sa vidéo de navigation (`assets/univers/imora-rituals/navigation-desktop.webm`)
    et ouvre l'étude de cas plein écran depuis le cadre (clip-path). Les autres projets
    ouvrent leur site en ligne dans un nouvel onglet (`assets/univers/<projet>/desktop-accueil.jpg`,
-   1600 × 1000, sert de texture ; variante 800 px pour la liste). Puis les six univers.
+   1600 × 1000, sert de texture ; variante 800 px pour la liste).
+   Puis **les six univers** (`js/univers.js`) : scène épinglée, le nom et sa phrase se brisent en
+   éclats triangulaires (clip-path sur une grille de points déplacés, 36 sur ordinateur, 32 sur
+   téléphone) qui s'envolent depuis le centre pendant que les éclats du suivant convergent et se
+   recomposent ; piloté par le défilement, donc réversible ; compteur 01 — 06. Au repos, une seule
+   copie non découpée est affichée (pas de coutures). Mouvement réduit : la liste d'origine.
 8. **Manifeste** — feuille Ivoire qui se déploie, lignes révélées au
    défilement, mot clé en violet sur la ligne courante.
 9. **Contact** — deux lignes géantes et le courriel en grand corps.
@@ -102,6 +107,7 @@ js/
   services.js      expertises épinglées
   methode.js       méthode horizontale
   works.js         réalisations : scène épinglée + toile WebGL (ou calques CSS), liste mobile, étude de cas
+  univers.js       univers : scène épinglée, éclats qui se recomposent d'un univers au suivant
   manifesto.js     manifeste
   contact.js       pied de page
   boot.js          démarrage : armement des modules, refresh, ouverture

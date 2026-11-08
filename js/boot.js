@@ -7,7 +7,7 @@
   var A = window.AURA;
 
   function arm() {
-    ['armNav', 'armHero', 'armServices', 'armMethode', 'armWorks', 'armManifesto', 'armContact', 'armReveals', 'armParallax', 'armLight', 'armMarble'].forEach(function (k) {
+    ['armNav', 'armHero', 'armServices', 'armMethode', 'armWorks', 'armUnivers', 'armManifesto', 'armContact', 'armReveals', 'armParallax', 'armLight', 'armMarble'].forEach(function (k) {
       if (typeof A[k] === 'function') { try { A[k](); } catch (e) { /* un module en échec n'empêche pas les autres */ } }
     });
   }
