@@ -29,6 +29,22 @@
 <link rel="stylesheet" href="css/sections.css">
 <link rel="stylesheet" href="css/print.css" media="print">
 <script src="js/head.js"></script>
+<script defer src="js/vendor/gsap.min.js"></script>
+<script defer src="js/vendor/ScrollTrigger.min.js"></script>
+<script defer src="js/vendor/lenis.min.js"></script>
+<script defer src="js/core.js"></script>
+<script defer src="js/app.js"></script>
+<script defer src="js/loader.js"></script>
+<script defer src="js/liquid.js"></script>
+<script defer src="js/marble.js"></script>
+<script defer src="js/nav.js"></script>
+<script defer src="js/hero.js"></script>
+<script defer src="js/services.js"></script>
+<script defer src="js/methode.js"></script>
+<script defer src="js/works.js"></script>
+<script defer src="js/manifesto.js"></script>
+<script defer src="js/contact.js"></script>
+<script defer src="js/boot.js"></script>
 </head>
 <body>
 
@@ -47,15 +63,34 @@
 
 <a href="#main" class="skip-link">Aller au contenu</a>
 
-<!-- ================= PRÉCHARGEUR ================= -->
-<!-- Quatre lignes en quinconce, puis tout glisse vers le hero. -->
+<!-- ================= OUVERTURE ================= -->
+<!-- Le symbole se trace en lumière et se remplit, le mot-symbole monte dessous (animation CSS,
+     démarrée dès l'arrivée des styles). Les scripts prennent la main pour la sortie : la caméra
+     traverse le logo pendant que le noir se dissout sur le hero. -->
 <div class="loader" id="loader" aria-hidden="true">
-  <div class="loader-words">
-    <span class="lw lw-1"><i>MÉTHODE</i></span>
-    <span class="lw lw-2"><i>AURA</i></span>
-    <span class="lw lw-3"><i>du concept</i></span>
-    <span class="lw lw-4"><i>à l'impact</i></span>
-    <p class="loader-note"><i>Studio de marque —<br>branding, identité visuelle<br>et digitalisation.</i></p>
+  <div class="ident-glow"></div>
+  <div class="ident">
+    <div class="ident-in">
+      <svg class="ident-mark" viewBox="0 0 803.685077 491.531334" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="identLight" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="8200" y2="0">
+            <stop offset="0" stop-color="#F5F2EA"/>
+            <stop offset="0.42" stop-color="#F5F2EA"/>
+            <stop offset="0.5" stop-color="#FFFFFF"/>
+            <stop offset="0.58" stop-color="#F5F2EA"/>
+            <stop offset="1" stop-color="#F5F2EA"/>
+            <animateTransform attributeName="gradientTransform" type="translate" from="-8200 0" to="8200 0" begin="1.35s" dur="1.1s" fill="freeze"/>
+          </linearGradient>
+        </defs>
+        <g transform="translate(-11.314923,502.531334) scale(0.1,-0.1)" fill="url(#identLight)" stroke="#F5F2EA">
+          <path class="ip ip-1" pathLength="1" vector-effect="non-scaling-stroke" d="M2964 4857 c-56 -95 -147 -251 -204 -347 -56 -96 -134 -229 -173 -295 -39 -66 -104 -176 -145 -245 -345 -572 -428 -709 -487 -805 -70 -113 -372 -612 -800 -1320 -132 -220 -346 -573 -474 -785 -180 -297 -536 -888 -568 -942 -2 -5 238 -8 534 -7 l538 0 67 102 c293 449 599 924 935 1452 128 201 678 1085 868 1395 76 124 190 308 253 410 64 102 127 205 142 230 15 25 68 112 119 193 80 131 89 151 79 170 -6 12 -56 96 -111 187 -55 91 -121 201 -147 245 -26 44 -91 152 -145 240 -54 88 -115 188 -136 223 -20 35 -39 65 -41 67 -2 2 -49 -73 -104 -168z"/>
+          <path class="ip ip-2" pathLength="1" vector-effect="non-scaling-stroke" d="M5206 4913 c-38 -60 -86 -135 -106 -168 -20 -33 -89 -143 -152 -245 -63 -102 -149 -241 -191 -310 -45 -72 -75 -131 -72 -139 3 -8 95 -164 204 -346 180 -301 334 -560 721 -1210 75 -126 170 -286 210 -355 40 -69 116 -199 170 -290 53 -91 134 -230 180 -310 46 -80 111 -192 145 -250 34 -58 80 -136 102 -175 118 -208 475 -814 531 -902 l64 -103 569 0 c313 0 569 4 569 8 0 10 -107 198 -225 397 -46 77 -154 262 -241 410 -86 149 -193 331 -237 405 -141 240 -211 359 -412 705 -109 187 -219 376 -245 420 -244 418 -508 869 -675 1155 -111 190 -245 419 -297 510 -325 564 -525 900 -537 900 -4 0 -38 -48 -75 -107z"/>
+          <path class="ip ip-3" pathLength="1" vector-effect="non-scaling-stroke" d="M4099 2337 c-36 -56 -100 -154 -141 -217 -41 -63 -121 -187 -178 -275 -56 -88 -123 -190 -147 -228 -74 -115 -76 -94 22 -268 48 -85 109 -190 135 -234 26 -44 82 -143 125 -220 109 -194 245 -436 334 -592 42 -72 84 -145 93 -162 l17 -31 576 0 c316 0 575 3 575 6 0 8 -114 218 -185 339 -29 50 -78 135 -110 190 -160 277 -465 803 -525 905 -37 63 -109 187 -160 275 -52 88 -139 237 -195 330 -56 94 -116 196 -134 228 -18 31 -33 57 -34 57 -1 0 -32 -46 -68 -103z"/>
+        </g>
+      </svg>
+      <p class="ident-word"><span class="iw iw-1"><i>MÉTHODE</i></span><span class="iw iw-2"><i>AURA</i></span></p>
+      <p class="ident-tag"><i>Studio de marque</i></p>
+    </div>
   </div>
 </div>
 
@@ -63,7 +98,7 @@
      (boucle intégrée) sur ordinateur, mp4 léger (720p, ralenti et boucle par fondu) sur écran tactile.
      Sur desktop, elle est rendue dans une toile WebGL qui ondule sous le pointeur (js/liquid.js). -->
 <div class="marble" id="marble" aria-hidden="true">
-  <video class="marble-video" id="marbleVideo" muted playsinline preload="auto" loop poster="assets/fresque-poster.jpg" data-webm="assets/fresque-1080.webm" data-mp4="assets/fresque.mp4"></video>
+  <video class="marble-video" id="marbleVideo" muted playsinline preload="none" loop poster="assets/fresque-poster.jpg" data-webm="assets/fresque-1080.webm" data-mp4="assets/fresque.mp4"></video>
   <video class="marble-video marble-video-b" id="marbleVideoB" muted playsinline preload="none" src="assets/fresque.mp4"></video>
   <div class="marble-shade"></div>
 </div>
@@ -114,11 +149,6 @@
       <span class="ht-line ht-1"><i>Du concept</i></span>
       <span class="ht-line ht-2"><i>à l'impact.</i></span>
     </h1>
-    <div class="hero-foot">
-      <a href="#studio" class="hero-scroll" aria-label="Défiler">
-        <span class="hero-scroll-line"></span><span>Défiler</span>
-      </a>
-    </div>
   </section>
 
 
@@ -146,7 +176,6 @@
         </div>
       </div>
     </div>
-    <svg class="studio-mark" viewBox="0 0 803.685077 491.531334" aria-hidden="true" data-parallax="0.12"><use href="#aura-mark"/></svg>
   </section>
 
   <!-- ================= EXPERTISES (épinglé) ================= -->
@@ -268,9 +297,17 @@
         </h2>
         <p class="works-lead" data-anim="up">Sept marques accompagnées du concept à l'écran : la même méthode, des univers différents.</p>
       </div>
+    </div>
+
+    <!-- Sur ordinateur, la scène est épinglée : le défilement fait passer d'un projet au suivant, le visuel
+         se transforme dans le cadre (toile WebGL, js/works.js) et le texte change. Sur téléphone et
+         tablette, les projets se lisent à la suite, chacun révélé en entrant à l'écran. -->
+    <div class="works-stage" id="worksStage">
+      <div class="works-frame" id="worksFrame" aria-hidden="true"></div>
+      <div class="works-list container" id="worksList">
 
       <!-- Projet livré : Imora Rituals -->
-      <article class="work" id="workCard" data-anim="mask">
+      <article class="work" id="workCard">
         <a href="#caseStudy" class="work-link" id="workOpen" data-no-scroll aria-haspopup="dialog" aria-controls="caseStudy">
           <span class="work-media" id="workMedia">
             <video class="work-video" id="workVideo" muted playsinline loop preload="metadata" poster="assets/univers/imora-rituals/desktop-accueil.jpg" aria-label="Navigation sur le site Imora Rituals">
@@ -279,7 +316,7 @@
           </span>
           <span class="work-row">
             <span class="work-index">01</span>
-            <span class="work-title"><i>Imora Rituals</i></span>
+            <span class="work-title"><span class="line"><i>Imora Rituals</i></span></span>
             <span class="work-side">
               <span class="work-meta">Beauté et bien-être · Site e-commerce · Direction artistique · 3D et motion</span>
               <span class="work-desc">Savons marbrés, soins et huiles fabriqués à la main à Libreville. Une boutique en ligne complète : vidéo d'accueil, catalogue, produits à faire tourner à 360°, coffret signature, panier et commande en FCFA.</span>
@@ -290,14 +327,14 @@
       </article>
 
       <!-- Sites conçus et réalisés par le studio -->
-      <article class="work work--site" data-anim="mask">
+      <article class="work work--site">
         <a href="https://linko-s3ve.onrender.com/" class="work-link" target="_blank" rel="noopener">
           <span class="work-media">
-            <img src="assets/univers/linko/desktop-accueil.jpg" srcset="assets/univers/linko/desktop-accueil-800.jpg 800w, assets/univers/linko/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site LINKO" width="1600" height="1000" loading="lazy" decoding="async">
+            <img src="assets/univers/linko/desktop-accueil.jpg" data-full="assets/univers/linko/desktop-accueil.jpg" srcset="assets/univers/linko/desktop-accueil-800.jpg 800w, assets/univers/linko/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site LINKO" width="1600" height="1000" loading="lazy" decoding="async">
           </span>
           <span class="work-row">
             <span class="work-index">02</span>
-            <span class="work-title"><i>LINKO</i></span>
+            <span class="work-title"><span class="line"><i>LINKO</i></span></span>
             <span class="work-side">
               <span class="work-meta">Services · Plateforme web · Identité · Expérience digitale</span>
               <span class="work-desc">Un besoin, la bonne compétence : LINKO met en relation les particuliers, les entreprises et les professionnels qualifiés au Gabon. Une identité vert signal sur papier, des titres en bas de casse et une recherche qui tient en une phrase.</span>
@@ -307,14 +344,14 @@
         </a>
       </article>
 
-      <article class="work work--site" data-anim="mask">
+      <article class="work work--site">
         <a href="https://locagab.onrender.com/" class="work-link" target="_blank" rel="noopener">
           <span class="work-media">
-            <img src="assets/univers/locagab/desktop-accueil.jpg" srcset="assets/univers/locagab/desktop-accueil-800.jpg 800w, assets/univers/locagab/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site LOCAGAB" width="1600" height="1000" loading="lazy" decoding="async">
+            <img src="assets/univers/locagab/desktop-accueil.jpg" data-full="assets/univers/locagab/desktop-accueil.jpg" srcset="assets/univers/locagab/desktop-accueil-800.jpg 800w, assets/univers/locagab/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site LOCAGAB" width="1600" height="1000" loading="lazy" decoding="async">
           </span>
           <span class="work-row">
             <span class="work-index">03</span>
-            <span class="work-title"><i>LOCAGAB</i></span>
+            <span class="work-title"><span class="line"><i>LOCAGAB</i></span></span>
             <span class="work-side">
               <span class="work-meta">Immobilier · Site vitrine · Charte graphique · Film</span>
               <span class="work-desc">L'application immobilière du Gabon : annonces vérifiées, carte interactive, contact direct avec les propriétaires et les agences. Un site vitrine, une charte graphique et un film de trente secondes pour accompagner le lancement.</span>
@@ -324,14 +361,14 @@
         </a>
       </article>
 
-      <article class="work work--site" data-anim="mask">
+      <article class="work work--site">
         <a href="https://paven.onrender.com/" class="work-link" target="_blank" rel="noopener">
           <span class="work-media">
-            <img src="assets/univers/paven/desktop-accueil.jpg" srcset="assets/univers/paven/desktop-accueil-800.jpg 800w, assets/univers/paven/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site PAVEN" width="1600" height="1000" loading="lazy" decoding="async">
+            <img src="assets/univers/paven/desktop-accueil.jpg" data-full="assets/univers/paven/desktop-accueil.jpg" srcset="assets/univers/paven/desktop-accueil-800.jpg 800w, assets/univers/paven/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site PAVEN" width="1600" height="1000" loading="lazy" decoding="async">
           </span>
           <span class="work-row">
             <span class="work-index">04</span>
-            <span class="work-title"><i>PAVEN</i></span>
+            <span class="work-title"><span class="line"><i>PAVEN</i></span></span>
             <span class="work-side">
               <span class="work-meta">B2B · Plateforme panafricaine · Identité · Motion design</span>
               <span class="work-desc">Une infrastructure de mise en relation entre entreprises africaines : compatibilités expliquées critère par critère, expansion vers de nouveaux marchés, espaces de négociation. Identité, page d'accueil, treize écrans produit et film de présentation.</span>
@@ -341,14 +378,14 @@
         </a>
       </article>
 
-      <article class="work work--site" data-anim="mask">
+      <article class="work work--site">
         <a href="https://pnuts.onrender.com/" class="work-link" target="_blank" rel="noopener">
           <span class="work-media">
-            <img src="assets/univers/pnuts/desktop-accueil.jpg" srcset="assets/univers/pnuts/desktop-accueil-800.jpg 800w, assets/univers/pnuts/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site P’NUTS" width="1600" height="1000" loading="lazy" decoding="async">
+            <img src="assets/univers/pnuts/desktop-accueil.jpg" data-full="assets/univers/pnuts/desktop-accueil.jpg" srcset="assets/univers/pnuts/desktop-accueil-800.jpg 800w, assets/univers/pnuts/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site P’NUTS" width="1600" height="1000" loading="lazy" decoding="async">
           </span>
           <span class="work-row">
             <span class="work-index">05</span>
-            <span class="work-title"><i>P’NUTS</i></span>
+            <span class="work-title"><span class="line"><i>P’NUTS</i></span></span>
             <span class="work-side">
               <span class="work-meta">Agroalimentaire · Snack · Site de lancement · Motion design</span>
               <span class="work-desc">Des cacahuètes sucrées en trois saveurs, lancées au Gabon avec une attitude. Quatre couleurs, une typographie géante, des champs de couleur cousus en biais et les vrais sachets au centre : un site bilingue avec un labo des saveurs interactif, prêt pour la distribution.</span>
@@ -358,14 +395,14 @@
         </a>
       </article>
 
-      <article class="work work--site" data-anim="mask">
+      <article class="work work--site">
         <a href="https://batireel.onrender.com/" class="work-link" target="_blank" rel="noopener">
           <span class="work-media">
-            <img src="assets/univers/batireel/desktop-accueil.jpg" srcset="assets/univers/batireel/desktop-accueil-800.jpg 800w, assets/univers/batireel/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site BATIRÉEL" width="1600" height="1000" loading="lazy" decoding="async">
+            <img src="assets/univers/batireel/desktop-accueil.jpg" data-full="assets/univers/batireel/desktop-accueil.jpg" srcset="assets/univers/batireel/desktop-accueil-800.jpg 800w, assets/univers/batireel/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site BATIRÉEL" width="1600" height="1000" loading="lazy" decoding="async">
           </span>
           <span class="work-row">
             <span class="work-index">06</span>
-            <span class="work-title"><i>BATIRÉEL</i></span>
+            <span class="work-title"><span class="line"><i>BATIRÉEL</i></span></span>
             <span class="work-side">
               <span class="work-meta">BTP · Plateforme · Identité · 3D temps réel · Film</span>
               <span class="work-desc">« Le chantier. Sans zone grise. » Une plateforme gabonaise pour comparer les devis, choisir les bons professionnels et suivre l’avancement des travaux. Direction artistique matière et structure, villa qui se construit en 3D dans le hero, Passeport Chantier et comparateur de devis démontrés, film narratif de présentation.</span>
@@ -375,14 +412,14 @@
         </a>
       </article>
 
-      <article class="work work--site" data-anim="mask">
+      <article class="work work--site">
         <a href="https://break-and-create.onrender.com/" class="work-link" target="_blank" rel="noopener">
           <span class="work-media">
-            <img src="assets/univers/break-and-create/desktop-accueil.jpg" srcset="assets/univers/break-and-create/desktop-accueil-800.jpg 800w, assets/univers/break-and-create/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site BREAK &amp; CREATE" width="1600" height="1000" loading="lazy" decoding="async">
+            <img src="assets/univers/break-and-create/desktop-accueil.jpg" data-full="assets/univers/break-and-create/desktop-accueil.jpg" srcset="assets/univers/break-and-create/desktop-accueil-800.jpg 800w, assets/univers/break-and-create/desktop-accueil.jpg 1600w" sizes="(min-width: 1280px) 1184px, calc(100vw - 40px)" alt="Page d'accueil du site BREAK &amp; CREATE" width="1600" height="1000" loading="lazy" decoding="async">
           </span>
           <span class="work-row">
             <span class="work-index">07</span>
-            <span class="work-title"><i>BREAK &amp; CREATE</i></span>
+            <span class="work-title"><span class="line"><i>BREAK &amp; CREATE</i></span></span>
             <span class="work-side">
               <span class="work-meta">Lieu d’expériences · Identité · Charte graphique · Site expérientiel</span>
               <span class="work-desc">Paint Room et Release Room à Akanda : on peint, on casse, on respire. Deux couleurs seulement, un mot-symbole fracturé par une coupe diagonale, un système de fragments qui se recomposent. Charte graphique de quarante planches, logos et site d’une page qui raconte l’expérience de Break à Create.</span>
@@ -391,6 +428,8 @@
           </span>
         </a>
       </article>
+      </div>
+      <p class="works-counter" aria-hidden="true"><span class="wc-num" id="worksNum">01</span><i class="wc-line"></i><span class="wc-total">07</span></p>
     </div>
   </section>
 
@@ -424,10 +463,6 @@
           <p class="m-line"><i>Elle <em>évolue.</em></i></p>
           <p class="m-line m-last"><i>Elle devient une <em>expérience.</em></i></p>
         </div>
-        <blockquote class="manifesto-quote" data-anim="up">
-          <p>Une marque, ce n'est pas un logo. C'est une décision que vous prenez à chaque point de contact.</p>
-          <cite>Manifeste du studio</cite>
-        </blockquote>
       </div>
     </div>
   </section>
@@ -524,21 +559,5 @@
   </div>
 </div>
 
-<script src="js/vendor/gsap.min.js"></script>
-<script src="js/vendor/ScrollTrigger.min.js"></script>
-<script src="js/vendor/lenis.min.js"></script>
-<script src="js/core.js"></script>
-<script src="js/app.js"></script>
-<script src="js/loader.js"></script>
-<script src="js/liquid.js"></script>
-<script src="js/marble.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/hero.js"></script>
-<script src="js/services.js"></script>
-<script src="js/methode.js"></script>
-<script src="js/works.js"></script>
-<script src="js/manifesto.js"></script>
-<script src="js/contact.js"></script>
-<script src="js/boot.js"></script>
 </body>
 </html>

@@ -54,35 +54,50 @@
 a:hover > .arrow-se,.work-link:hover .arrow-se{transform:translate(3px,3px);}
 a:hover > .arrow-ne{transform:translate(3px,-3px);}
 
-/* ---------- Préchargeur ---------- */
+/* ---------- Ouverture : le logo comme un début de film ----------
+   Tout est animé en CSS et démarre dès l'arrivée des styles, avant les scripts :
+   les trois traits du symbole se tracent en lumière (0 → 1,7 s), le symbole se
+   remplit et une lumière le traverse (1,15 → 2,45 s), le mot-symbole monte
+   (1,6 → 2,7 s). js/loader.js attend la fin de cette montée puis enchaîne la sortie : la caméra traverse le logo
+   pendant que le noir se dissout sur le hero. ---------- */
 .loader{
   position:fixed;inset:0;z-index:var(--z-loader);background:var(--obs);color:var(--ivo);
-  clip-path:inset(0 0 0 0);
-  padding:var(--frame-top) var(--frame-x) 40px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
 html:not(.is-loading) .loader{display:none;}
-.loader-words{position:absolute;inset:0;}
-.lw{position:absolute;display:block;overflow:hidden;line-height:1;letter-spacing:-0.045em;font-weight:800;
-  font-size:clamp(34px, 6.4vw, 104px);padding:0.06em 0.04em 0.16em;}
-.lw > i{display:block;transform:translateY(110%);} /* masqué tant que le script n'a pas pris la main */
-.lw-1{left:var(--frame-x);bottom:22vh;}
-.lw-2{left:calc(var(--frame-x) + 6vw);bottom:12vh;color:var(--ivo);}
-.lw-3{right:calc(var(--frame-x) + 6vw);bottom:22vh;font-weight:300;}
-.lw-4{right:var(--frame-x);bottom:12vh;font-weight:300;}
-.lw-4 > i{color:var(--or);}
-.loader-note{position:absolute;left:44%;bottom:23.5vh;overflow:hidden;font-size:12.5px;line-height:1.5;color:var(--muted-dark);font-weight:400;}
-.loader-note > i{display:block;transform:translateY(110%);}
-/* Téléphone et tablette : les quatre mots empilés en bas à gauche (en quinconce), la note au-dessus. */
-@media (max-width:900px){
-  .loader-words{position:absolute;left:var(--frame-x);right:var(--frame-x);top:auto;bottom:clamp(28px, 7vh, 64px);display:flex;flex-direction:column;}
-  .lw{position:static;font-size:clamp(34px, 11.5vw, 84px);padding:0.05em 0.04em 0.16em;margin:-0.05em 0 -0.1em;}
-  .lw-2,.lw-4{padding-left:calc(10vw + 0.04em);}
-  .loader-note{position:static;order:-1;margin:0 0 clamp(20px, 5vh, 40px);font-size:12px;}
+.ident-glow{
+  position:absolute;left:50%;top:50%;width:140vmax;height:140vmax;transform:translate(-50%,-50%);pointer-events:none;
+  background:radial-gradient(closest-side, rgba(var(--vio-rgb),0.15), rgba(var(--vio-rgb),0.05) 40%, transparent 70%);
+  opacity:0;animation:identGlow 2.4s var(--ease-out) 0.3s forwards;
 }
-@media (max-width:900px) and (max-height:520px){
-  .lw{font-size:clamp(24px, 8vh, 40px);}
-  .loader-note{display:none;}
+.ident{position:relative;will-change:transform,opacity;}
+.ident-in{display:flex;flex-direction:column;align-items:center;gap:clamp(22px, 3.4vh, 40px);animation:identSettle 2.6s var(--ease-out) forwards;}
+.ident-mark{width:clamp(150px, 22vw, 300px);height:auto;overflow:visible;}
+.ip{
+  stroke-width:1.1;vector-effect:non-scaling-stroke;stroke-linejoin:round;
+  stroke-dasharray:1;stroke-dashoffset:1;fill-opacity:0;
+  animation:identDraw 1.45s cubic-bezier(.7,0,.3,1) forwards, identFill .9s var(--ease-out) 1.15s forwards;
 }
+.ip-2{animation-delay:.12s, 1.27s;}
+.ip-3{animation-delay:.24s, 1.39s;}
+.ident-word{display:flex;flex-direction:column;align-items:center;line-height:1;}
+.iw{display:block;overflow:hidden;padding:0.06em 0.12em 0.14em;margin:-0.06em -0.12em -0.14em;}
+.iw > i{display:block;transform:translateY(112%);animation:identRise 1s var(--ease-out) forwards;}
+.iw-1{font-size:clamp(11px, 1.1vw, 15px);font-weight:300;letter-spacing:0.46em;text-indent:0.46em;}
+.iw-1 > i{animation-delay:1.6s;}
+.iw-2{font-size:clamp(34px, 4.4vw, 62px);font-weight:800;letter-spacing:-0.02em;margin-top:0.18em;}
+.iw-2 > i{animation-delay:1.7s;}
+.ident-tag{overflow:hidden;font-size:12px;font-weight:400;letter-spacing:0.02em;color:var(--muted-dark);}
+.ident-tag > i{display:block;transform:translateY(120%);animation:identRise 1s var(--ease-out) 1.95s forwards;}
+@keyframes identDraw{from{stroke-dashoffset:1;}to{stroke-dashoffset:0;}}
+@keyframes identFill{from{fill-opacity:0;}to{fill-opacity:1;}}
+@keyframes identRise{from{transform:translateY(112%);}to{transform:none;}}
+@keyframes identSettle{from{transform:scale(1.07);}to{transform:scale(1);}}
+@keyframes identGlow{from{opacity:0;}to{opacity:1;}}
+/* Déjà vu dans la session : simple fondu, sans le logo */
+html.intro-short .ident,html.intro-short .ident-glow{display:none;}
+/* Scripts jamais arrivés : la page se montre quand même */
+html.intro-failed .nav{opacity:1;}
 
 /* ---------- Navigation ---------- */
 .nav{

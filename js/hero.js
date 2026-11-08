@@ -12,11 +12,9 @@
   if (!hero || !title) return;
   var lines = title.querySelectorAll('.ht-line > i');
   var intro = hero.querySelector('.hero-intro');
-  var foot = hero.querySelector('.hero-foot');
 
   if (!A.reduced) {
     gsap.set(lines, { yPercent: 108 });
-    gsap.set(foot, { opacity: 0, y: 12 });
   }
 
   function enter() {
@@ -24,8 +22,7 @@
     if (A.reduced) { A.playReveal(intro); return; }
     var tl = gsap.timeline({ defaults: { ease: A.EASE } });
     tl.to(lines, { yPercent: 0, duration: 1.6, stagger: 0.14 }, 0)
-      .add(function () { A.playReveal(intro); }, 0.5)
-      .to(foot, { opacity: 1, y: 0, duration: 1.2 }, 1.0);
+      .add(function () { A.playReveal(intro); }, 0.5);
   }
   A.on('intro:leaving', enter);
 
@@ -38,7 +35,6 @@
     if (A.fine && !A.lowPower) away.filter = 'blur(8px)';
     gsap.to(title, away);
     gsap.to(intro, { y: -80, opacity: 0, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: '60% top', scrub: 0.5 } });
-    gsap.to(foot, { opacity: 0, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: '30% top', scrub: true } });
     // Les couches suivent le pointeur (desktop)
     if (A.fine) {
       var qs = inner.map(function (el, i) {

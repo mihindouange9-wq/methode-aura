@@ -16,7 +16,7 @@ Ouvrir `index.html`, ou servir le dossier :
 powershell -ExecutionPolicy Bypass -File .\serve.ps1
 ```
 
-Paramètres d'adresse : `?nointro` (préchargeur court), `?reduced` (tout visible,
+Paramètres d'adresse : `?nointro` (ouverture courte), `?reduced` (tout visible,
 rien ne bouge).
 
 Épuration du 15 septembre 2026 : retrait du compteur du préchargeur, du badge
@@ -26,8 +26,13 @@ révélations au défilement se limitent à une montée légère en fondu.
 
 ## Parcours
 
-1. **Préchargeur** — « MÉTHODE / AURA / du concept / à l'impact » en
-   quinconce, puis le rideau se lève. Version complète une fois par session, courte ensuite.
+1. **Ouverture** — le symbole se trace en lumière (trois traits), se remplit,
+   une lumière le traverse, le mot-symbole MÉTHODE / AURA monte dessous ; puis la
+   caméra traverse le logo pendant que le noir se dissout sur le hero (≈ 4 s).
+   L'animation est en CSS pur (`components.css`) et démarre dès l'arrivée des styles,
+   avant les scripts ; `loader.js` attend sa fin réelle (API Web Animations) pour
+   lancer la sortie. Version complète une fois par session, fondu court ensuite.
+   Si les scripts n'arrivent pas, `head.js` lève l'ouverture après dix secondes.
 2. **Hero** — la fresque en vidéo (`assets/fresque-1080.webm`, ralenti
    interpolé 0,6×, 1080p, netteté, boucle intégrée ; repli `fresque.mp4`),
    rendue sur desktop dans une toile WebGL qui ondule sous le pointeur
@@ -42,21 +47,33 @@ révélations au défilement se limitent à une montée légère en fondu.
 6. **La méthode** — liste éditoriale : 01 Comprendre, 02 Structurer, 03 Créer,
    04 Déployer, 05 Transformer. La colonne de gauche reste en place pendant la
    lecture ; le temps sous le milieu de l'écran s'allume.
-7. **Réalisations** — « Sélection de projets » sur une feuille Ivoire : chaque projet
-   est un visuel pleine largeur en format écran d'ordinateur (16/10), suivi d'une
-   ligne éditoriale (index, titre, contexte). Imora Rituals joue une vidéo de
-   navigation du site (`assets/univers/imora-rituals/navigation-desktop.webm`,
-   22 s, 1600 × 1000) et ouvre l'étude de cas plein écran depuis le visuel
-   (clip-path). LINKO, LOCAGAB et PAVEN suivent avec la capture de leur page
-   d'accueil (`assets/univers/<projet>/desktop-accueil.jpg`, 1600 × 1000, et
-   une variante 800 px pour les petits écrans) ; les trois ouvrent le site en
-   ligne dans un nouvel onglet. Puis les six univers.
+7. **Réalisations** — « Sélection de projets » sur une feuille Ivoire. Sur ordinateur,
+   la scène est épinglée : le défilement fait passer d'un projet au suivant (7 projets,
+   0,85 écran par transition). Le cadre, à gauche, est une toile WebGL (`js/works.js`) :
+   le visuel courant se dissout dans le suivant par un bruit organique (déplacement,
+   léger décalage chromatique sur le bord), l'image se courbe avec la vitesse du
+   défilement et ondule sous le pointeur ; le texte (index, titre, contexte) monte dans
+   ses fenêtres à chaque changement ; un compteur 01 — 07 suit. Sans WebGL : calques CSS
+   (balayage + fondu). Téléphone et tablette (≤ 900 px) et mouvement réduit : liste
+   verticale, chaque projet révélé en entrant à l'écran (rideau, zoom, titre).
+   Imora Rituals joue sa vidéo de navigation (`assets/univers/imora-rituals/navigation-desktop.webm`)
+   et ouvre l'étude de cas plein écran depuis le cadre (clip-path). Les autres projets
+   ouvrent leur site en ligne dans un nouvel onglet (`assets/univers/<projet>/desktop-accueil.jpg`,
+   1600 × 1000, sert de texture ; variante 800 px pour la liste). Puis les six univers.
 8. **Manifeste** — feuille Ivoire qui se déploie, lignes révélées au
    défilement, mot clé en violet sur la ligne courante.
-9. **Contact** — deux lignes géantes, bouton, courriel, anneau incliné vers le
-   pointeur.
+9. **Contact** — deux lignes géantes et le courriel en grand corps.
 10. **Pied de page** — le marbre revient, liste des réseaux en grand corps,
     « MÉTHODE / AURA ».
+
+## Chargement
+
+Les scripts sont déclarés dans `<head>` avec `defer` : ils se téléchargent pendant la
+lecture de la page sans la bloquer, et s'exécutent dans l'ordre une fois le document lu.
+La vidéo de fond (`fresque-1080.webm`, 14 Mo sur ordinateur ; `fresque.mp4`, 3,6 Mo sur
+écran tactile) n'est demandée qu'au départ de la sortie de l'ouverture : les styles, les
+polices et les scripts passent d'abord, l'affiche (`fresque-poster.jpg`) tient lieu de
+première image. Les visuels des réalisations sont chargés quand la section approche.
 
 ## Architecture
 
@@ -65,7 +82,7 @@ index.html
 css/
   tokens.css       couleurs, typographie, rythme, z-index (charte)
   base.css         reset, fenêtres de découpe (.w / .line), marbre, trame, feuilles
-  components.css   kickers, boutons, liens, flèches, préchargeur, navigation, menu
+  components.css   titres, boutons, liens, flèches, ouverture (logo animé), navigation, menu
   sections.css     hero, studio, expertises, méthode, réalisations,
                    univers, manifeste, contact, pied de page, étude de cas, responsive
   fonts.css        Sora hébergée sur le site (assets/fonts/, licence OFL)
@@ -76,7 +93,7 @@ js/
   app.js           Lenis + ScrollTrigger, ancres, découpe typographique,
                    révélations data-anim, parallaxe data-parallax, feuilles claires,
                    marbre qui s'éloigne / revient
-  loader.js        préchargeur
+  loader.js        sortie de l'ouverture (la caméra traverse le logo)
   head.js          classes posées avant le premier rendu (intro, mouvement réduit)
   liquid.js        distorsion liquide WebGL (A.liquid(conteneur, média, options))
   marble.js        vidéo de fond (fresque) : lecture, repli mp4 au ralenti, toile liquide
@@ -84,10 +101,10 @@ js/
   hero.js          hero
   services.js      expertises épinglées
   methode.js       méthode horizontale
-  works.js         carte de cas, étude de cas plein écran, univers
+  works.js         réalisations : scène épinglée + toile WebGL (ou calques CSS), liste mobile, étude de cas
   manifesto.js     manifeste
-  contact.js       contact et pied de page
-  boot.js          démarrage : armement des modules, refresh, préchargeur
+  contact.js       pied de page
+  boot.js          démarrage : armement des modules, refresh, ouverture
 assets/
   fresque-1080.webm / fresque.mp4 / fresque-poster.jpg, lockup_horizontal_white.png,
   logomark_white.svg, univers/imora-rituals/ (navigation-desktop.webm, desktop-accueil.jpg
@@ -157,7 +174,7 @@ allégées. Paliers : ≤ 1100 px (petit desktop, tablette paysage), ≤ 900 px
 paysage court (≤ 520 px de haut). Tout est dans le bloc « Responsive » de
 `css/sections.css` et la fin de `css/components.css` (préchargeur, navigation).
 
-- **Préchargeur** — les quatre mots empilés en bas à gauche.
+- **Ouverture** — le logo centré, aux mêmes proportions que sur ordinateur.
 - **Hero** — titre à 14 vw, texte d'intro sous la navigation ;
   pas de flou au défilement sur écran tactile.
 - **Le studio** — les trois colonnes deviennent trois blocs compacts (numéro,
@@ -166,7 +183,7 @@ paysage court (≤ 520 px de haut). Tout est dans le bloc « Responsive » de
   par `js/services.js`, le toucher ouvre ou ferme, le premier est ouvert, le
   texte circulaire tourne derrière la liste.
 - **La méthode** — la colonne de gauche passe au-dessus de la liste.
-- **Réalisations** — visuel en tête, puis titre et contexte à la suite.
+- **Réalisations** — pas de scène épinglée : visuel en tête (révélé en rideau), puis titre et contexte à la suite.
 - **Univers** — la phrase de chaque univers reste visible (pas de survol).
 - **Manifeste, contact, pied de page** — moins de vide, mêmes proportions.
 - **Vidéo de fond** — `js/marble.js` choisit la source : WebM 1080p (14 Mo)

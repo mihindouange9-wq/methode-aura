@@ -10,10 +10,9 @@ main{z-index:auto;}
 .hero{min-height:100vh;page-break-after:always;break-after:page;background:var(--obs) url('../assets/fresque-poster.jpg') 50% 45% / cover no-repeat;}
 .hero .line > i,.hero .ht-line > i{transform:none !important;opacity:1 !important;}
 .hero-title{transform:none !important;opacity:1 !important;filter:none !important;}
-.hero-star,.hero-foot{opacity:1 !important;transform:none !important;}
 .s{page-break-before:always;break-before:page;min-height:0;padding-top:40px !important;padding-bottom:40px !important;}
 .hero::before,.hero::after{display:none !important;}
-.hero-foot{display:none !important;}
+.works-frame,.works-counter{display:none !important;}
 .w > i,.line > i,[data-anim]{transform:none !important;opacity:1 !important;clip-path:none !important;}
 .services-stage{position:static !important;height:auto !important;display:block !important;padding:0 var(--frame-x) !important;}
 .services-head{position:static !important;margin-bottom:24px;}

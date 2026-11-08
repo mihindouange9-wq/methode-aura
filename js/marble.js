@@ -27,15 +27,24 @@
   function fail() { html.classList.add('no-video'); wrap.classList.add('is-ready'); }
 
   /* Sources : le WebM 1080p (14 Mo, ralenti et boucle intégrés) sur ordinateur ; sur écran tactile
-     ou étroit, le mp4 d'origine (3,6 Mo, 720p), joué au ralenti avec une boucle par fondu. */
-  (function pickSources() {
+     ou étroit, le mp4 d'origine (3,6 Mo, 720p), joué au ralenti avec une boucle par fondu.
+     Rien n'est demandé avant la sortie de l'ouverture : les scripts et les polices passent d'abord,
+     l'affiche (poster) tient lieu de première image. */
+  var picked = false;
+  function pickSources() {
+    if (picked) return; picked = true;
     if (!va.dataset.mp4 && !va.dataset.webm) return;
     var light = A.coarse || A.narrow;
     function add(src, type) { var s = document.createElement('source'); s.src = src; s.type = type; va.appendChild(s); }
     if (!light && va.dataset.webm) add(va.dataset.webm, 'video/webm');
     if (va.dataset.mp4) add(va.dataset.mp4, 'video/mp4');
+    va.preload = 'auto';
     va.load();
-  })();
+    if (va.readyState >= 1) start(); else va.addEventListener('loadedmetadata', start, { once: true });
+    setTimeout(function () { if (!started) { if (va.readyState >= 1) start(); else fail(); } }, 15000);
+  }
+  A.on('intro:leaving', pickSources);
+  setTimeout(pickSources, 6000); // filet : si l'ouverture ne se termine pas, la fresque part quand même
 
   players.forEach(function (v) {
     v.loop = false; v.muted = true; v.defaultMuted = true; v.playsInline = true;
@@ -67,9 +76,6 @@
       if (liq) { wrap.insertBefore(liq.canvas, wrap.querySelector('.marble-shade')); wrap.classList.add('has-liquid'); A.marbleLiquid = liq; }
     }
   }
-  if (va.readyState >= 1) start(); else va.addEventListener('loadedmetadata', start, { once: true });
-  setTimeout(function () { if (!started) { if (va.readyState >= 1) start(); else fail(); } }, 15000);
-
   // Autoplay refusé (rare avec muted) : premier geste
   var kick = function () { players.forEach(function (v) { if (v.paused && v.style.opacity !== '0') tryPlay(v); }); };
   ['pointerdown', 'touchstart', 'keydown', 'wheel'].forEach(function (ev) { window.addEventListener(ev, kick, { passive: true }); });
