@@ -48,14 +48,15 @@ révélations au défilement se limitent à une montée légère en fondu.
    04 Déployer, 05 Transformer. La colonne de gauche reste en place pendant la
    lecture ; le temps sous le milieu de l'écran s'allume.
 7. **Réalisations** — « Sélection de projets » sur une feuille Ivoire. Sur ordinateur,
-   la scène est épinglée : le défilement fait passer d'un projet au suivant (7 projets,
-   0,85 écran par transition). Le cadre, à gauche, est une toile WebGL (`js/works.js`) :
+   comme sur téléphone, la scène est épinglée : le défilement fait passer d'un projet au
+   suivant (8 projets, 0,85 écran par transition). Le cadre (à gauche sur ordinateur, au-dessus
+   du texte en portrait) est une toile WebGL (`js/works.js`) :
    le visuel courant se dissout dans le suivant par un bruit organique (déplacement,
    léger décalage chromatique sur le bord), l'image se courbe avec la vitesse du
    défilement et ondule sous le pointeur ; le texte (index, titre, contexte) monte dans
-   ses fenêtres à chaque changement ; un compteur 01 — 07 suit. Sans WebGL : calques CSS
-   (balayage + fondu). Téléphone et tablette (≤ 900 px) et mouvement réduit : liste
-   verticale, chaque projet révélé en entrant à l'écran (rideau, zoom, titre).
+   ses fenêtres à chaque changement ; un compteur 01 — 08 suit. Sans WebGL : calques CSS
+   (balayage + fondu). Sur écran tactile, l'affiche d'Imora Rituals remplace sa vidéo dans
+   le cadre. Mouvement réduit : liste verticale, chaque projet révélé en entrant à l'écran.
    Imora Rituals joue sa vidéo de navigation (`assets/univers/imora-rituals/navigation-desktop.webm`)
    et ouvre l'étude de cas plein écran depuis le cadre (clip-path). Les autres projets
    ouvrent leur site en ligne dans un nouvel onglet (`assets/univers/<projet>/desktop-accueil.jpg`,
@@ -189,7 +190,7 @@ paysage court (≤ 520 px de haut). Tout est dans le bloc « Responsive » de
   par `js/services.js`, le toucher ouvre ou ferme, le premier est ouvert, le
   texte circulaire tourne derrière la liste.
 - **La méthode** — la colonne de gauche passe au-dessus de la liste.
-- **Réalisations** — pas de scène épinglée : visuel en tête (révélé en rideau), puis titre et contexte à la suite.
+- **Réalisations** — la scène épinglée s'empile : cadre en haut, texte dessous (quatre lignes de description au plus).
 - **Univers** — la phrase de chaque univers reste visible (pas de survol).
 - **Manifeste, contact, pied de page** — moins de vide, mêmes proportions.
 - **Vidéo de fond** — `js/marble.js` choisit la source : WebM 1080p (14 Mo)

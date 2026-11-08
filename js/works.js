@@ -5,9 +5,10 @@
    suivant (dissolution par bruit, déplacement, légère aberration chromatique),
    l'image se courbe avec la vitesse du défilement et ondule sous le pointeur ;
    le texte monte dans ses fenêtres. Sans WebGL : balayage et fondu en CSS.
-   Téléphone et tablette : liste verticale, chaque projet révélé en entrant.
+   Téléphone et tablette : même scène, empilée (cadre puis texte), sans vidéo
+   (l'affiche d'Imora Rituals sert de texture). Mouvement réduit : liste
+   verticale, chaque projet révélé en entrant.
    Imora Rituals joue sa vidéo de navigation et ouvre l'étude de cas plein écran.
-   Le mode suit la largeur en direct (rotation d'une tablette, fenêtre redimensionnée).
    ========================================================================== */
 (function () {
   'use strict';
@@ -44,8 +45,7 @@
   });
   var N = items.length;
   if (!N) return;
-  var mq = window.matchMedia('(max-width:900px)');
-  var mode = null;          // 'stage' (épinglé) ou 'list' (vertical)
+  var mode = null;          // 'stage' (épinglé) ou 'list' (vertical, mouvement réduit)
   var cur = -1;             // projet dont le texte est affiché
   var inView = false;
   var STEP = 0.85, HOLD = 0.4; // hauteurs d'écran par transition, et pause sur le dernier projet
@@ -63,7 +63,7 @@
   }
 
   function glSupported() {
-    if (A.reduced || A.lowPower || /nogl/.test(location.search)) return false;
+    if (A.reduced || /nogl/.test(location.search)) return false;
     try { var c = document.createElement('canvas'); return !!(c.getContext('webgl') || c.getContext('experimental-webgl')); } catch (e) { return false; }
   }
 
@@ -163,7 +163,7 @@
     return {
       canvas: canvas,
       resize: function () {
-        var r = frame.getBoundingClientRect(); var dpr = Math.min(A.dpr || 1, 1.5);
+        var r = frame.getBoundingClientRect(); var dpr = Math.min(A.dpr || 1, A.coarse ? 1 : 1.5);
         W = Math.max(2, Math.round(r.width * dpr)); H = Math.max(2, Math.round(r.height * dpr));
         canvas.width = W; canvas.height = H;
       },
@@ -172,7 +172,7 @@
       draw: function (i, t, vel, dt) {
         time += dt;
         var v0 = items[0].video;
-        if (i === 0 && v0 && v0.readyState >= 2 && !v0.paused) upload(0, v0);
+        if (i === 0 && !A.coarse && v0 && v0.readyState >= 2 && !v0.paused) upload(0, v0);
         // Carte de flux : le pointeur pousse la matière, qui se dissipe
         gl.bindBuffer(gl.ARRAY_BUFFER, quad);
         gl.useProgram(progFlow); attr(progFlow);
@@ -222,7 +222,7 @@
 
   function syncVideo() {
     var v = items[0].video; if (!v) return;
-    var on = mode === 'stage' && inView && (cur === 0 || (pairI === 0 && pairT < 1));
+    var on = mode === 'stage' && inView && !A.coarse && (cur === 0 || (pairI === 0 && pairT < 1));
     if (on) play(v); else v.pause();
   }
 
@@ -351,7 +351,7 @@
 
   /* ============================ Bascule ============================ */
   function apply() {
-    var next = (mq.matches || A.reduced) ? 'list' : 'stage';
+    var next = A.reduced ? 'list' : 'stage';
     if (next === mode) return;
     if (mode === 'stage') disarmStage();
     if (mode === 'list') disarmList();
@@ -362,8 +362,6 @@
   A.armWorks = function () {
     ST.create({ trigger: section, start: 'top 150%', once: true, onEnter: loadSources });
     apply();
-    var onChange = function () { apply(); };
-    if (mq.addEventListener) mq.addEventListener('change', onChange); else mq.addListener(onChange);
   };
 
   A.register({

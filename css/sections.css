@@ -386,8 +386,23 @@ a.fl:hover i{opacity:1;transform:none;}
   .step.is-active .step-title{transform:none;}
   .step-body{max-width:none;}
 
-  /* Réalisations : visuel en tête, puis titre et contexte à la suite */
+  /* Réalisations : la scène s'empile (cadre, puis texte) en portrait ; en paysage, la grille d'ordinateur en plus petit */
   .works-head{grid-template-columns:1fr;gap:18px;}
+  .s-works.is-stage .works-head{margin-bottom:24px;}
+  .s-works.is-stage .works-stage{gap:18px;}
+  .s-works.is-stage .work-title{font-size:clamp(28px, 6vw, 44px);}
+  .s-works.is-stage .work-desc{font-size:14px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+  .s-works.is-stage .works-counter{bottom:18px;}
+  @media (orientation:portrait){
+    .s-works.is-stage .works-stage{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:clamp(20px, 3.5vh, 32px);padding:calc(var(--frame-top) - 10px) var(--gutter) 64px;}
+    .s-works.is-stage .works-frame{width:100%;max-height:none;justify-self:auto;}
+    .s-works.is-stage .works-list{height:clamp(250px, 40svh, 380px);flex:none;}
+    .s-works.is-stage .work{top:0;transform:none;}
+    .s-works.is-stage .work-index{padding-bottom:10px;}
+    .s-works.is-stage .work-title{font-size:clamp(32px, 9.4vw, 52px);}
+    .s-works.is-stage .work-side{padding-top:14px;gap:10px;}
+    .s-works.is-stage .works-counter{left:var(--gutter);}
+  }
   .works-lead{padding-bottom:0;}
   .work{padding:28px 0 32px;}
   .work-row{grid-template-columns:1fr;gap:10px;margin-top:22px;}
