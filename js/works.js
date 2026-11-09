@@ -32,13 +32,22 @@
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function smooth(t) { t = A.clamp(t, 0, 1); return t * t * (3 - 2 * t); }
 
+  /* Chaque visuel existe en trois largeurs (800, 1600, 2560 px) : la scène charge la plus
+     petite qui couvre la toile, pixel pour pixel. */
+  function tiersOf(img) {
+    var t = [], sm = img.getAttribute('data-sm'), full = img.getAttribute('data-full') || img.getAttribute('src'), hd = img.getAttribute('data-hd');
+    if (sm) t.push({ w: 800, src: sm });
+    if (full) t.push({ w: 1600, src: full });
+    if (hd) t.push({ w: 2560, src: hd });
+    return t;
+  }
   var items = Array.prototype.slice.call(list.querySelectorAll('.work')).map(function (el) {
     var img = el.querySelector('.work-media img');
     var video = el.querySelector('.work-media video');
     return {
       el: el, link: el.querySelector('.work-link'), media: el.querySelector('.work-media'),
       inner: img || video, video: video,
-      src: img ? (img.getAttribute('data-full') || img.getAttribute('src')) : (video ? video.getAttribute('poster') : ''),
+      tiers: img ? tiersOf(img) : (video && video.getAttribute('poster') ? [{ w: 1600, src: video.getAttribute('poster') }] : []),
       titleI: el.querySelector('.work-title .line > i'),
       parts: el.querySelectorAll('.work-index, .work-meta, .work-desc, .work-cta')
     };
@@ -51,14 +60,31 @@
   var STEP = 0.85, HOLD = 0.4; // hauteurs d'écran par transition, et pause sur le dernier projet
 
   /* ============================ Visuels ============================ */
-  var sources = [], loading = false;
+  var sources = [], wanted = [], started = false;
+  function density() { return Math.max(1, Math.min(window.devicePixelRatio || A.dpr || 1, 3)); }
+  function need() { return renderer && renderer.width ? renderer.width() : Math.round(frame.getBoundingClientRect().width * density()); }
+  function pick(it) {
+    var n = need() * 0.98, t = it.tiers;
+    for (var k = 0; k < t.length; k++) if (t[k].w >= n) return t[k];
+    return t[t.length - 1];
+  }
+  /* Rappelée quand la toile grandit : une taille supérieure remplace alors la précédente,
+     jamais l'inverse. Le décodage se fait hors du fil principal avant l'envoi à la carte. */
   function loadSources() {
-    if (loading) return; loading = true;
+    started = true;
     items.forEach(function (it, k) {
-      if (!it.src) return;
+      if (!it.tiers.length) return;
+      var t = pick(it);
+      if (wanted[k] && wanted[k].w >= t.w) return;
+      wanted[k] = t;
       var im = new Image(); im.decoding = 'async';
-      im.onload = function () { sources[k] = im; if (renderer && renderer.upload) renderer.upload(k, im); };
-      im.src = it.src;
+      var ready = function () { if (wanted[k] !== t) return; sources[k] = im; if (renderer && renderer.upload) renderer.upload(k, im); };
+      im.onload = function () { if (im.decode) im.decode().then(ready, ready); else ready(); };
+      im.onerror = function () {
+        if (wanted[k] !== t || it.tiers.length < 2) return;
+        it.tiers = it.tiers.filter(function (x) { return x !== t; }); wanted[k] = null; loadSources();
+      };
+      im.src = t.src;
     });
   }
 
@@ -80,13 +106,15 @@
       'uniform sampler2D uPrev;uniform vec2 uMouse,uVel;uniform float uAspect,uRadius,uDissipate,uStrength;',
       'void main(){',
       '  vec4 c=texture2D(uPrev,v);',
-      '  vec2 f=(c.rg-0.5)*2.0*uDissipate;',
+      // 128/255 code le zéro exact ; le retrait fixe garantit le retour au repos malgré l'arrondi sur 8 bits
+      '  vec2 f=(c.rg-0.50196078)*2.0;',
+      '  f=sign(f)*max(abs(f)*uDissipate-0.006,0.0);',
       '  vec2 d=v-uMouse;d.x*=uAspect;',
       '  float a=1.0-smoothstep(0.0,uRadius,length(d));',
       '  a=a*a*(3.0-2.0*a);',
       '  f+=uVel*a*uStrength;',
-      '  f=clamp(f,-1.0,1.0);',
-      '  gl_FragColor=vec4(f*0.5+0.5,0.0,1.0);',
+      '  f=clamp(f,-0.99,0.99);',
+      '  gl_FragColor=vec4(f*0.5+0.50196078,0.0,1.0);',
       '}'
     ].join('\n');
     var FS_DRAW = [
@@ -102,7 +130,7 @@
       '  float sx=sin(uv.x*3.14159265);',
       '  uv.y=(uv.y-0.5)*(1.0-abs(uVel)*0.16*sx)+0.5+uVel*0.035*sx;',
       // Le pointeur fait onduler la matière
-      '  vec2 f=(texture2D(uFlow,v).rg-0.5)*2.0;',
+      '  vec2 f=(texture2D(uFlow,v).rg-0.50196078)*2.0;',
       '  uv+=f*uFlowAmt;',
       // Dissolution : le visuel suivant s'infiltre depuis le haut, avec un bord organique
       '  float n=fbm(uv*vec2(3.0,2.2)+vec2(0.0,uTime*0.04));',
@@ -144,47 +172,87 @@
     for (var k = 0; k < 2; k++) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo[k]);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, flow[k], 0);
-      gl.clearColor(0.5, 0.5, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.clearColor(128 / 255, 128 / 255, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
     }
     var fi = 0;
     var blank = tex(); gl.bindTexture(gl.TEXTURE_2D, blank); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([17, 17, 20, 255]));
-    var slots = items.map(function () { return { tex: null, w: 1, h: 1, ready: false }; });
+    var slots = items.map(function () { return { tex: null, w: 1, h: 1, ready: false, source: null }; });
     var W = 2, H = 2, time = 0;
+    var dirty = true, idle = 0, flowLife = 0, lastI = -1, lastT = -1;
     var mouse = { x: 0.5, y: 0.5, vx: 0, vy: 0 };
-    /* Les visuels (1600 px) sont bien plus larges que la toile : sans mipmaps, le
-       rééchantillonnage linéaire perd des pixels et l'image paraît floue ou crénelée.
-       WebGL2 accepte les mipmaps sur toute taille ; la vidéo (réécrite à chaque image) s'en passe. */
+    /* Netteté : un visuel plus grand que la toile est d'abord réduit à la taille exacte de
+       celle-ci (réduction de qualité du navigateur, par moitiés au-delà de ×2), si bien qu'au
+       repos un texel tombe sur un pixel d'écran, sans filtrage. Les mipmaps (WebGL2) ne
+       servent plus qu'aux déformations des transitions et à la vidéo, plus large que le cadre. */
+    function scaled(src, w, h) {
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      var x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+      x.drawImage(src, 0, 0, w, h); return c;
+    }
+    function fitted(source, sw, sh, tw, th) {
+      var cur = source, cw = sw, ch = sh, prev = null;
+      while (cw > tw * 2) {
+        cw = Math.ceil(cw / 2); ch = Math.ceil(ch / 2);
+        var step = scaled(cur, cw, ch); if (prev) prev.width = prev.height = 0; prev = cur = step;
+      }
+      var out = scaled(cur, tw, th); if (prev) prev.width = prev.height = 0;
+      return out;
+    }
     function upload(k, source) {
       var s = slots[k]; if (!s.tex) s.tex = tex();
       var isVideo = !!source.videoWidth;
+      var sw = source.videoWidth || source.naturalWidth || source.width || 1;
+      var sh = source.videoHeight || source.naturalHeight || source.height || 1;
+      var data = source, tw = sw, th = sh, tmp = null;
+      if (!isVideo) {
+        s.source = source;
+        var sc = Math.max(W / sw, H / sh);
+        if (sc < 0.985) {
+          tw = Math.max(2, Math.round(sw * sc)); th = Math.max(2, Math.round(sh * sc));
+          try { data = tmp = fitted(source, sw, sh, tw, th); } catch (e) { data = source; tw = sw; th = sh; tmp = null; }
+        }
+      }
       gl.bindTexture(gl.TEXTURE_2D, s.tex);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-      try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source); } catch (e) { return; }
-      if (gl2 && !isVideo) { gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); }
+      try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data); } catch (e) { return; }
+      if (tmp) tmp.width = tmp.height = 0;
+      if (gl2 && (!isVideo || sw > W * 1.2)) { gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); }
       else gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      s.w = source.videoWidth || source.naturalWidth || source.width || 1;
-      s.h = source.videoHeight || source.naturalHeight || source.height || 1;
-      s.ready = true;
+      s.w = tw; s.h = th;
+      s.ready = true; dirty = true;
     }
     function cover(s) { var ra = W / H, rt = s.w / s.h; return rt > ra ? [ra / rt, 1, (1 - ra / rt) / 2, 0] : [1, rt / ra, 0, (1 - rt / ra) / 2]; }
     return {
       canvas: canvas,
+      width: function () { return W; },
       resize: function () {
-        /* Densité réelle de l'écran, bornée par un budget de pixels : sur téléphone (cadre
-           petit, écran dense) la toile est rendue à pleine densité, sur grand écran elle
-           plafonne vers 1,5-1,7 pour rester fluide. */
+        /* Densité réelle de l'écran (jusqu'à ×3), bornée par un budget de 4,1 Mpx, soit une
+           toile de 2 560 × 1 600 : pleine densité sur téléphone, tablette, portable Retina et
+           écran 4K. Rien n'est touché si la taille n'a pas changé ; sinon les visuels sont
+           réajustés à la nouvelle toile. */
         var r = frame.getBoundingClientRect();
-        var budget = Math.sqrt(2.6e6 / Math.max(1, r.width * r.height));
-        var dpr = Math.max(1, Math.min(A.dpr || 1, 3, budget));
-        W = Math.max(2, Math.round(r.width * dpr)); H = Math.max(2, Math.round(r.height * dpr));
-        canvas.width = W; canvas.height = H;
+        if (r.width < 2 || r.height < 2) return;
+        var budget = Math.sqrt(4.1e6 / (r.width * r.height));
+        var dpr = Math.max(1, Math.min(density(), budget));
+        var w = Math.max(2, Math.round(r.width * dpr)), h = Math.max(2, Math.round(r.height * dpr));
+        if (w === W && h === H) return;
+        W = w; H = h; canvas.width = W; canvas.height = H; dirty = true;
+        slots.forEach(function (s, k) { if (s.source) upload(k, s.source); });
       },
       upload: upload,
-      setPointer: function (x, y, vx, vy) { mouse.x = x; mouse.y = 1 - y; mouse.vx += vx; mouse.vy -= vy; },
+      setPointer: function (x, y, vx, vy) { mouse.x = x; mouse.y = 1 - y; mouse.vx += vx; mouse.vy -= vy; flowLife = 150; },
+      invalidate: function () { dirty = true; },
       draw: function (i, t, vel, dt) {
         time += dt;
+        if (Math.abs(vel) < 0.0005) vel = 0;
         var v0 = items[0].video;
-        if (i === 0 && !A.coarse && v0 && v0.readyState >= 2 && !v0.paused) upload(0, v0);
+        var videoOn = i === 0 && !A.coarse && v0 && v0.readyState >= 2 && !v0.paused;
+        /* Image au repos sur un projet (hors transition, dont le bord vit avec le temps) :
+           rien ne bouge, on ne redessine pas (un rappel par seconde environ) */
+        var still = (t <= 0 || t >= 1) && i === lastI && t === lastT && vel === 0;
+        if (still && !dirty && !videoOn && !flowLife && ++idle < 60) return;
+        idle = 0; dirty = false; lastI = i; lastT = t; if (flowLife) flowLife--;
+        if (videoOn) upload(0, v0);
         // Carte de flux : le pointeur pousse la matière, qui se dissipe
         gl.bindBuffer(gl.ARRAY_BUFFER, quad);
         gl.useProgram(progFlow); attr(progFlow);
@@ -213,7 +281,7 @@
 
   /* Repli sans WebGL : des calques en CSS, le suivant balaie le courant de haut en bas */
   function makeDOM() {
-    var layers = items.map(function (it) { var d = document.createElement('div'); d.className = 'wl'; if (it.src) d.style.backgroundImage = 'url("' + it.src + '")'; frame.appendChild(d); return d; });
+    var layers = items.map(function (it) { var d = document.createElement('div'); d.className = 'wl'; if (it.tiers.length) d.style.backgroundImage = 'url("' + pick(it).src + '")'; frame.appendChild(d); return d; });
     return {
       canvas: null, resize: function () {}, setPointer: function () {},
       draw: function (i, t) {
@@ -298,11 +366,11 @@
       end: function () { return '+=' + Math.round(window.innerHeight * ((N - 1) * STEP + HOLD)); },
       pin: true, pinSpacing: true, scrub: true, invalidateOnRefresh: true,
       onUpdate: function (self) { setProgress(self.progress); },
-      onRefresh: function () { if (renderer) renderer.resize(); }
+      onRefresh: function () { if (renderer) { renderer.resize(); if (started) loadSources(); } }
     });
     viewST = ST.create({
       trigger: section, start: 'top bottom', end: 'bottom top',
-      onToggle: function (self) { inView = self.isActive; if (inView && cur < 0) swapText(0, 1); syncVideo(); }
+      onToggle: function (self) { inView = self.isActive; if (inView && cur < 0) swapText(0, 1); if (renderer && renderer.invalidate) renderer.invalidate(); syncVideo(); }
     });
     if (!A.reduced) {
       gsap.set(frame, { clipPath: 'inset(10% 8% 10% 8%)' });

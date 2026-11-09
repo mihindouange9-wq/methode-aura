@@ -55,15 +55,18 @@ révélations au défilement se limitent à une montée légère en fondu.
    léger décalage chromatique sur le bord), l'image se courbe avec la vitesse du
    défilement et ondule sous le pointeur ; le texte (index, titre, contexte) monte dans
    ses fenêtres à chaque changement ; un compteur 01 — 08 suit. Sans WebGL : calques CSS
-   (balayage + fondu). La toile est rendue à la densité réelle de l'écran, bornée par un
-   budget de 2,6 Mpx (pleine densité sur téléphone, ≈ 1,5-1,7 sur grand écran), en WebGL2
-   avec mipmaps quand il est disponible : les visuels de 1 600 px restent nets une fois
-   réduits. Sur écran tactile, l'affiche d'Imora Rituals remplace sa vidéo dans
+   (balayage + fondu). La toile est rendue à la densité réelle de l'écran (jusqu'à ×3), bornée par un
+   budget de 4,1 Mpx (2 560 × 1 600) : pleine densité sur téléphone, portable Retina et 4K.
+   Chaque visuel existe en trois largeurs (800, 1 600, 2 560 px) ; la scène charge la plus
+   petite qui couvre la toile, puis la réduit à la taille exacte de celle-ci avant de
+   l'envoyer à la carte : au repos, un texel tombe sur un pixel d'écran. La carte de flux
+   du pointeur revient à zéro exact (sinon l'image restait légèrement déformée et frangée
+   après un survol) et la toile n'est plus redessinée tant que rien ne bouge. Sur écran tactile, l'affiche d'Imora Rituals remplace sa vidéo dans
    le cadre. Mouvement réduit : liste verticale, chaque projet révélé en entrant à l'écran.
    Imora Rituals joue sa vidéo de navigation (`assets/univers/imora-rituals/navigation-desktop.webm`)
    et ouvre l'étude de cas plein écran depuis le cadre (clip-path). Les autres projets
-   ouvrent leur site en ligne dans un nouvel onglet (`assets/univers/<projet>/desktop-accueil.jpg`,
-   1600 × 1000, sert de texture ; variante 800 px pour la liste).
+   ouvrent leur site en ligne dans un nouvel onglet (`assets/univers/<projet>/accueil-1600.jpg`,
+   `accueil-800.jpg` et `accueil-2560.webp`, attributs `data-sm`, `data-full`, `data-hd` et `srcset`).
    Puis **les six univers** (`js/univers.js`) : scène épinglée, le nom et sa phrase se brisent en
    éclats triangulaires (clip-path sur une grille de points déplacés, 36 sur ordinateur, 32 sur
    téléphone) qui s'envolent depuis le centre pendant que les éclats du suivant convergent et se
@@ -155,8 +158,10 @@ assets/
   depuis la carte cliquée et lance la vidéo.
 - LINKO (https://linko-s3ve.onrender.com), LOCAGAB (https://locagab.onrender.com)
   et PAVEN (https://paven.onrender.com) sont présentés par la capture de leur page ; P’NUTS (https://pnuts.onrender.com, ajouté le 24 octobre 2026) et BATIRÉEL (https://batireel.onrender.com, ajouté le 24 octobre 2026) et BREAK & CREATE (https://break-and-create.onrender.com, ajouté le 24 octobre 2026) suivent le même modèle
-  d'accueil à 1600 × 1000 (Chrome headless, 5 s d'attente après le chargement),
-  réduite à 800 px pour les petits écrans (`desktop-accueil-800.jpg`).
+  d'accueil à 1600 × 1000 en densité 2 (Chrome headless, soit 3 200 × 2 000, quelques
+  secondes d'attente après le chargement), dont sont tirées les trois tailles publiées :
+  `accueil-2560.webp`, `accueil-1600.jpg` et `accueil-800.jpg`. Les fichiers de `assets/`
+  étant mis en cache un an, une capture refaite doit changer de nom.
   Pour ajouter un site : dupliquer un `<article class="work work--site">`.
 
 ## Vidéo de fond
