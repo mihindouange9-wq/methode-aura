@@ -71,7 +71,8 @@
   function makeGL() {
     var canvas = document.createElement('canvas'), gl;
     canvas.className = 'works-canvas';
-    try { gl = canvas.getContext('webgl', { alpha: false, antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false }); } catch (e) { gl = null; }
+    var opts = { alpha: false, antialias: false, premultipliedAlpha: false, preserveDrawingBuffer: false }, gl2 = false;
+    try { gl = canvas.getContext('webgl2', opts); gl2 = !!gl; if (!gl) gl = canvas.getContext('webgl', opts); } catch (e) { gl = null; }
     if (!gl) return null;
     var VS = 'attribute vec2 p;varying vec2 v;void main(){v=p*0.5+0.5;gl_Position=vec4(p,0.,1.);}';
     var FS_FLOW = [
@@ -150,11 +151,17 @@
     var slots = items.map(function () { return { tex: null, w: 1, h: 1, ready: false }; });
     var W = 2, H = 2, time = 0;
     var mouse = { x: 0.5, y: 0.5, vx: 0, vy: 0 };
+    /* Les visuels (1600 px) sont bien plus larges que la toile : sans mipmaps, le
+       rééchantillonnage linéaire perd des pixels et l'image paraît floue ou crénelée.
+       WebGL2 accepte les mipmaps sur toute taille ; la vidéo (réécrite à chaque image) s'en passe. */
     function upload(k, source) {
       var s = slots[k]; if (!s.tex) s.tex = tex();
+      var isVideo = !!source.videoWidth;
       gl.bindTexture(gl.TEXTURE_2D, s.tex);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
       try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source); } catch (e) { return; }
+      if (gl2 && !isVideo) { gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); }
+      else gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       s.w = source.videoWidth || source.naturalWidth || source.width || 1;
       s.h = source.videoHeight || source.naturalHeight || source.height || 1;
       s.ready = true;
@@ -163,7 +170,12 @@
     return {
       canvas: canvas,
       resize: function () {
-        var r = frame.getBoundingClientRect(); var dpr = Math.min(A.dpr || 1, A.coarse ? 1 : 1.5);
+        /* Densité réelle de l'écran, bornée par un budget de pixels : sur téléphone (cadre
+           petit, écran dense) la toile est rendue à pleine densité, sur grand écran elle
+           plafonne vers 1,5-1,7 pour rester fluide. */
+        var r = frame.getBoundingClientRect();
+        var budget = Math.sqrt(2.6e6 / Math.max(1, r.width * r.height));
+        var dpr = Math.max(1, Math.min(A.dpr || 1, 3, budget));
         W = Math.max(2, Math.round(r.width * dpr)); H = Math.max(2, Math.round(r.height * dpr));
         canvas.width = W; canvas.height = H;
       },

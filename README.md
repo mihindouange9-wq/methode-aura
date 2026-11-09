@@ -55,7 +55,10 @@ révélations au défilement se limitent à une montée légère en fondu.
    léger décalage chromatique sur le bord), l'image se courbe avec la vitesse du
    défilement et ondule sous le pointeur ; le texte (index, titre, contexte) monte dans
    ses fenêtres à chaque changement ; un compteur 01 — 08 suit. Sans WebGL : calques CSS
-   (balayage + fondu). Sur écran tactile, l'affiche d'Imora Rituals remplace sa vidéo dans
+   (balayage + fondu). La toile est rendue à la densité réelle de l'écran, bornée par un
+   budget de 2,6 Mpx (pleine densité sur téléphone, ≈ 1,5-1,7 sur grand écran), en WebGL2
+   avec mipmaps quand il est disponible : les visuels de 1 600 px restent nets une fois
+   réduits. Sur écran tactile, l'affiche d'Imora Rituals remplace sa vidéo dans
    le cadre. Mouvement réduit : liste verticale, chaque projet révélé en entrant à l'écran.
    Imora Rituals joue sa vidéo de navigation (`assets/univers/imora-rituals/navigation-desktop.webm`)
    et ouvre l'étude de cas plein écran depuis le cadre (clip-path). Les autres projets
