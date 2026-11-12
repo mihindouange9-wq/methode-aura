@@ -33,7 +33,7 @@ révélations au défilement se limitent à une montée légère en fondu.
    avant les scripts ; `loader.js` attend sa fin réelle (API Web Animations) pour
    lancer la sortie. Version complète une fois par session, fondu court ensuite.
    Si les scripts n'arrivent pas, `head.js` lève l'ouverture après dix secondes.
-2. **Hero** — la fresque en vidéo (`assets/fresque-1080.webm`, ralenti
+2. **Hero** — la fresque en vidéo (`assets/fresque-1080-v2.webm`, ralenti
    interpolé 0,6×, 1080p, netteté, boucle intégrée ; repli `fresque.mp4`),
    rendue sur desktop dans une toile WebGL qui ondule sous le pointeur
    (`js/liquid.js` : carte de flux + déplacement d'UV + aberration chromatique).
@@ -82,7 +82,7 @@ révélations au défilement se limitent à une montée légère en fondu.
 
 Les scripts sont déclarés dans `<head>` avec `defer` : ils se téléchargent pendant la
 lecture de la page sans la bloquer, et s'exécutent dans l'ordre une fois le document lu.
-La vidéo de fond (`fresque-1080.webm`, 14 Mo sur ordinateur ; `fresque.mp4`, 3,6 Mo sur
+La vidéo de fond (`fresque-1080-v2.webm`, 6,8 Mo sur ordinateur ; `fresque.mp4`, 3,6 Mo sur
 écran tactile) n'est demandée qu'au départ de la sortie de l'ouverture : les styles, les
 polices et les scripts passent d'abord, l'affiche (`fresque-poster.jpg`) tient lieu de
 première image. Les visuels des réalisations sont chargés quand la section approche.
@@ -119,7 +119,7 @@ js/
   contact.js       pied de page
   boot.js          démarrage : armement des modules, refresh, ouverture
 assets/
-  fresque-1080.webm / fresque.mp4 / fresque-poster.jpg, lockup_horizontal_white.png,
+  fresque-1080-v2.webm / fresque.mp4 / fresque-poster.jpg, lockup_horizontal_white.png,
   logomark_white.svg, univers/imora-rituals/ (navigation-desktop.webm, desktop-accueil.jpg
   en affiche, produit-savon.jpg, produit-huile.jpg)
 ```
@@ -166,16 +166,16 @@ assets/
 
 ## Vidéo de fond
 
-`fresque-1080.webm` est produit par `tools/bake.html` à partir de
+`fresque-1080-v2.webm` est produit par `tools/bake.html` à partir de
 `test1/fresque.mp4` (10 s, 1280 × 720, 24 i/s) : ralenti 0,65× avec images
 intermédiaires compensées en mouvement, agrandissement 1080p bicubique,
 renforcement adaptatif, boucle en fondu de 1,2 s intégrée, VP9 12 Mbps
-(≈ 13,3 s, 14 Mo). L'enregistrement est en temps réel : il faut impérativement
+(≈ 13,3 s, 6,8 Mo). L'enregistrement est en temps réel : il faut impérativement
 un Chrome avec accélération graphique (pas de rendu logiciel), sinon les
 images arrivent en retard et la vidéo devient un diaporama. Pour le
 régénérer : servir le dossier puis ouvrir dans Chrome
-`tools/bake.html?auto=1&src=../../fresque.mp4&slow=0.65&xfade=1.2&bitrate=12` ;
-le fichier se télécharge, à renommer `fresque-1080.webm`. Contrôle de fluidité :
+`tools/bake.html?auto=1&src=../../fresque.mp4&slow=0.65&xfade=1.2&bitrate=5` ;
+le fichier se télécharge, à renommer avec un nouveau nom (`fresque-1080-v2.webm`, puis v3… : les fichiers sont mis en cache un an) et à déclarer dans `data-webm` de `index.html`. Contrôle de fluidité :
 deux images consécutives à 1/30 s ne doivent presque jamais être identiques.
 Le repli `fresque.mp4` (original) est joué à 0,6× par `marble.js`.
 
@@ -201,7 +201,7 @@ paysage court (≤ 520 px de haut). Tout est dans le bloc « Responsive » de
 - **Réalisations** — la scène épinglée s'empile : cadre en haut, texte dessous (quatre lignes de description au plus).
 - **Univers** — la phrase de chaque univers reste visible (pas de survol).
 - **Manifeste, contact, pied de page** — moins de vide, mêmes proportions.
-- **Vidéo de fond** — `js/marble.js` choisit la source : WebM 1080p (14 Mo)
+- **Vidéo de fond** — `js/marble.js` choisit la source : WebM 1080p (6,8 Mo)
   sur ordinateur, `fresque.mp4` (3,6 Mo, 720p, ralenti + boucle par fondu)
   sur écran tactile ou étroit. Le filtre couleur de la vidéo est retiré sur
   écran tactile.

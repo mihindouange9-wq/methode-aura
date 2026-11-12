@@ -92,8 +92,8 @@ html.no-video .marble-shade{
 /* ---------- Toile liquide (WebGL) : recouvre la vidéo, apparaît une fois la première image prête ---------- */
 .liquid-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1.2s var(--ease-out);pointer-events:none;}
 .liquid-canvas.is-ready{opacity:1;}
-/* La vidéo reste visible tant que la toile n'a pas dessiné sa première image */
-.marble.has-liquid.liquid-ready .marble-video{opacity:0 !important;}
+/* La vidéo reste visible sous la toile pendant tout son fondu d'apparition, puis s'efface */
+.marble.has-liquid.liquid-ready .marble-video{opacity:0 !important;transition:opacity 0s linear 1.3s;}
 
 /* ---------- Sections ---------- */
 main{position:relative;z-index:var(--z-content);}

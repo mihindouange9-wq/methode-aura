@@ -24,27 +24,57 @@
   var players = [va, vb].filter(Boolean);
   var current = 0, fading = false, started = false, duration = 0;
 
-  function fail() { html.classList.add('no-video'); wrap.classList.add('is-ready'); }
+  /* L'affiche d'abord : dès qu'elle est chargée (pendant l'ouverture), la fresque est visible, image
+     fixe. La vidéo prend le relais sans coupure quand elle peut être lue sans s'arrêter. */
+  var posterOk = false;
+  function showPoster() { posterOk = true; if (!started) va.style.opacity = '1'; wrap.classList.add('is-ready'); }
+  if (va.poster) {
+    var pim = new Image();
+    pim.onload = showPoster;
+    pim.src = va.poster;
+    if (pim.complete && pim.naturalWidth) showPoster();
+  }
 
-  /* Sources : le WebM 1080p (14 Mo, ralenti et boucle intégrés) sur ordinateur ; sur écran tactile
-     ou étroit, le mp4 d'origine (3,6 Mo, 720p), joué au ralenti avec une boucle par fondu.
-     Rien n'est demandé avant la sortie de l'ouverture : les scripts et les polices passent d'abord,
-     l'affiche (poster) tient lieu de première image. */
-  var picked = false;
+  // Vidéo indisponible : l'affiche reste en place ; sans affiche, le dégradé de repli.
+  function fail() { if (started) return; if (!posterOk) html.classList.add('no-video'); wrap.classList.add('is-ready'); }
+
+  /* Sources : le WebM 1080p (6,8 Mo, ralenti et boucle intégrés) sur ordinateur ; sur écran tactile
+     ou étroit, ou si la connexion est annoncée lente, le mp4 d'origine (3,6 Mo, 720p), joué au ralenti
+     avec une boucle par fondu. Économiseur de données ou 2G : l'affiche seule, aucune vidéo demandée.
+     Le téléchargement part dès maintenant, pendant l'ouverture. */
+  var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+  var netType = conn && conn.effectiveType || '';
+  var noVideoNet = !!(conn && (conn.saveData || /(^|-)2g$/.test(netType)));
+  var slowNet = !!(conn && (netType === '3g' || (conn.downlink > 0 && conn.downlink < 5)));
+  var picked = false, t0 = 0, gateT = 0;
   function pickSources() {
     if (picked) return; picked = true;
-    if (!va.dataset.mp4 && !va.dataset.webm) return;
-    var light = A.coarse || A.narrow;
+    if (noVideoNet || (!va.dataset.mp4 && !va.dataset.webm)) return;
+    var light = A.coarse || A.narrow || slowNet;
     function add(src, type) { var s = document.createElement('source'); s.src = src; s.type = type; va.appendChild(s); }
     if (!light && va.dataset.webm) add(va.dataset.webm, 'video/webm');
     if (va.dataset.mp4) add(va.dataset.mp4, 'video/mp4');
     va.preload = 'auto';
+    t0 = performance.now();
     va.load();
-    if (va.readyState >= 1) start(); else va.addEventListener('loadedmetadata', start, { once: true });
-    setTimeout(function () { if (!started) { if (va.readyState >= 1) start(); else fail(); } }, 15000);
+    va.addEventListener('canplaythrough', start, { once: true });
+    va.addEventListener('progress', gate);
+    gateT = setInterval(gate, 500);
+    // Filets : au bout de 12 s on lance ce qui est arrivé ; rien du tout : l'affiche reste.
+    setTimeout(function () { if (!started) { if (va.readyState >= 3) start(); else va.addEventListener('canplay', start, { once: true }); } }, 12000);
+    setTimeout(function () { if (!started && va.readyState < 1) fail(); }, 20000);
   }
-  A.on('intro:leaving', pickSources);
-  setTimeout(pickSources, 6000); // filet : si l'ouverture ne se termine pas, la fresque part quand même
+  /* Départ de la lecture : seulement quand l'avance prise suffit pour aller au bout sans s'arrêter.
+     b = secondes en mémoire, r = secondes de vidéo reçues par seconde ; pas d'arrêt si b ≥ d × (1 − r). */
+  function gate() {
+    if (started) { clearInterval(gateT); va.removeEventListener('progress', gate); return; }
+    var d = va.duration; if (!d || !isFinite(d) || va.readyState < 3 || !va.buffered.length) return;
+    var b = va.buffered.end(va.buffered.length - 1);
+    var el = (performance.now() - t0) / 1000;
+    var r = el > 0.3 ? (b / el) / (/\.webm(\?|$)/i.test(va.currentSrc || '') ? 1 : RATE) : 0;
+    if (b >= d - 0.25 || (el > 1 && b >= d * (1 - Math.min(r * 0.8, 1)))) start(); // 20 % de marge : le débit de la vidéo n'est pas constant
+  }
+  pickSources();
 
   players.forEach(function (v) {
     v.loop = false; v.muted = true; v.defaultMuted = true; v.playsInline = true;
@@ -65,10 +95,13 @@
     if (baked) { va.loop = true; va.playbackRate = 1; va.defaultPlaybackRate = 1; }
     va.currentTime = 0; va.style.opacity = '1';
     if (vb) { vb.style.opacity = '0'; vb.pause(); }
+    // Second lecteur (boucle par fondu du mp4) : prêt avant le premier fondu, depuis le cache
+    if (vb && !baked) { vb.preload = 'auto'; try { vb.load(); } catch (e) {} }
     tryPlay(va);
     wrap.classList.add('is-ready');
     // Distorsion liquide au pointeur (desktop) : la vidéo devient une texture WebGL
-    if (A.liquidSupported && A.liquidSupported() && A.liquid) {
+    // (seulement sur le WebM : la toile ne lit qu'un lecteur, le mp4 en alterne deux)
+    if (baked && A.liquidSupported && A.liquidSupported() && A.liquid) {
       var liq = A.liquid(wrap, va, { guard: true, pointerTarget: window, focal: [0.5, 0.45], dpr: 1, flowSize: 192, radius: 0.13, dissipate: 0.968, strength: 0.85, amount: 0.05, chroma: 0.01, ripple: 0.0035,
         parallax: function () { return [-A.pointer.snx * 0.012, A.pointer.sny * 0.009]; },
         onReady: function () { wrap.classList.add('liquid-ready'); },

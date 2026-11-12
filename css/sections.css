@@ -226,6 +226,7 @@ html.reduced-motion .m-line em{color:var(--vio-deep);}
   font-size:clamp(22px, 3.6vw, 56px);font-weight:700;letter-spacing:-0.03em;line-height:1.1;color:var(--ivo);
   padding-bottom:0.12em;transition:color .5s var(--ease-out);
 }
+.contact-mail::before{content:"";position:absolute;left:0;right:0;top:50%;height:44px;min-height:100%;transform:translateY(-50%);} /* zone tactile */
 .contact-mail::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--vio-2);transform:scaleX(0.18);transform-origin:left center;transition:transform .8s var(--ease-out);}
 .contact-mail:hover::after{transform:scaleX(1);}
 .contact-arrow{width:0.5em;height:0.5em;flex:none;transition:transform .6s var(--ease-out);}
@@ -256,7 +257,7 @@ a.fl:hover i{opacity:1;transform:none;}
 .fw-line > i{display:block;}
 .fw-2 > i{color:rgba(var(--ivo-rgb),0.34);}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:22px;border-top:1px solid var(--line-dark);font-size:12px;color:var(--muted-dark-2);}
-.footer-up{font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted-dark);}
+.footer-up{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted-dark);}
 .footer-up:hover{color:var(--ivo);}
 
 /* ---------- ÉTUDE DE CAS (plein écran) ---------- */
@@ -485,6 +486,10 @@ a.fl:hover i{opacity:1;transform:none;}
 @media (max-width:900px) and (max-height:520px){
   .hero-title{font-size:clamp(36px, 12.5vh, 64px);bottom:14vh;}
   .hero-intro{max-width:44ch;}
+  /* Menu : les cinq liens tiennent dans la hauteur, et défilent s'il le faut */
+  .mobile-menu{padding:64px var(--gutter) 20px;overflow-y:auto;gap:14px;}
+  .mobile-links{gap:0;}
+  .mobile-links a{font-size:clamp(24px, 9.5vh, 40px);}
 }
 
 /* ---------- Écrans tactiles : pas d'état de survol qui reste collé ---------- */
